@@ -1,0 +1,27 @@
+{
+  "name": "limerick-skill",
+  "owner": {
+    "name": "Corby Page",
+    "email": "corby.page@broadcom.com"
+  },
+  "metadata": {
+    "description": "A curated collection of plugins for Claude Code",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "topical-limerick",
+      "source": "./plugins/topical-limerick",
+      "description": "Write entertaining limericks with current news and topical references. Automatically searches for recent news and crafts witty, properly-formatted limericks.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Corby Page"
+      },
+      "keywords": ["limerick", "poetry", "writing", "news", "topical", "entertainment", "ai", "skills"],
+      "category": "writing",
+      "license": "MIT",
+      "strict": true
+    }
+  ]
+}
+

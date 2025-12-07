@@ -6,7 +6,6 @@
     "name": "Corby"
   },
   "keywords": ["limerick", "poetry", "writing", "news", "topical", "entertainment"],
-  "category": "writing",
   "license": "MIT",
   "skills": ["./skills/topical-limerick"]
 }

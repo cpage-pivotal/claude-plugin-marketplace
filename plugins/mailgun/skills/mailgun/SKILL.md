@@ -9,7 +9,7 @@ Send emails through the Mailgun API with context-aware subject and body generati
 
 ## Configuration
 
-- **API Endpoint**: `https://api.mailgun.net/v3/corby.page/messages`
+- **API Endpoint**: `https://api.mailgun.net/v3/mail.corby.page/messages`
 - **Sender**: `Tanzu Agent <postmaster@corby.page>`
 - **Authentication**: API key required via `MAILGUN_API_KEY` environment variable or `--api-key` argument
 

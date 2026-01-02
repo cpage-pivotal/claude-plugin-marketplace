@@ -38,7 +38,7 @@ def send_email(recipients, subject, body, api_key=None):
         recipient_list = recipients
     
     # Mailgun API configuration
-    url = "https://api.mailgun.net/v3/corby.page/messages"
+    url = "https://api.mailgun.net/v3/mail.corby.page/messages"
     sender = "Tanzu Agent <postmaster@corby.page>"
     
     try:

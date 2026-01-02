@@ -1,21 +1,43 @@
-# Limerick Skill Plugin Marketplace
+# Tanzu Platform Plugin Marketplace
 
-A curated plugin marketplace for Claude Code featuring the **Topical Limerick** skill - an AI-powered limerick writer that combines classic poetry with current events.
+A curated plugin marketplace for Claude Code featuring productivity and integration plugins for Tanzu Platform.
 
-## 🎭 Overview
+## Overview
 
-This marketplace provides Claude Code plugins.
+This marketplace provides Claude Code plugins for enhancing development workflows with Tanzu Platform integrations and creative tools.
 
-## 📦 Available Plugins
+## Available Plugins
+
+### Mailgun
+
+Send emails via the Mailgun API directly from Claude Code. This plugin enables:
+
+- **Email sending** to single or multiple recipients
+- **Context-aware content** with dynamically generated subjects and bodies
+- **Professional formatting** with proper greetings and closings
+- **Environment-based authentication** using MAILGUN_API_KEY
+
+**Perfect for:** Automated notifications, team communications, workflow integrations, email automation
+
+### Google Chat Poster
+
+Post messages to Google Chat Spaces using the Google Chat API. This plugin provides:
+
+- **Direct posting** to Google Chat Spaces
+- **Text and formatted messages** with markdown support
+- **Webhook-based authentication** for easy integration
+- **Error handling** with clear feedback
+
+**Perfect for:** Team notifications, build status updates, CI/CD integrations, workflow alerts
 
 ### Topical Limerick
 
 Write entertaining limericks that blend any requested topic with current news and events. This plugin adds an AI skill that:
 
-- ✅ **Searches recent news** automatically for topical references
-- ✅ **Follows proper limerick structure** (AABBA rhyme scheme, anapestic meter)
-- ✅ **Incorporates specific details** from current events
-- ✅ **Maintains humor and wit** with surprising, clever endings
+- **Searches recent news** automatically for topical references
+- **Follows proper limerick structure** (AABBA rhyme scheme, anapestic meter)
+- **Incorporates specific details** from current events
+- **Maintains humor and wit** with surprising, clever endings
 
 **Perfect for:** Creative writing, entertainment, making technical topics fun, social media content, presentations
 
@@ -26,22 +48,25 @@ Write entertaining limericks that blend any requested topic with current news an
 1. **Add this marketplace to Claude Code:**
 
 ```bash
-/plugin marketplace add corby/limerick-skill
+/plugin marketplace add cpage-pivotal/claude-plugin-marketplace
 ```
 
 Or if you've cloned this repository locally:
 
 ```bash
-/plugin marketplace add /path/to/limerick-skill
+/plugin marketplace add /path/to/claude-plugin-marketplace
 ```
 
-2. **Install the topical-limerick plugin:**
+2. **Install one or more plugins:**
 
 ```bash
-/plugin install topical-limerick@limerick-skill
+# Install all plugins
+/plugin install topical-limerick@claude-plugin-marketplace
+/plugin install mailgun@claude-plugin-marketplace
+/plugin install google-chat-poster@claude-plugin-marketplace
 ```
 
-3. **Restart Claude Code** to activate the plugin
+3. **Restart Claude Code** to activate the plugins
 
 4. **Verify installation:**
 
@@ -49,85 +74,67 @@ Or if you've cloned this repository locally:
 /plugin
 ```
 
-Look for `topical-limerick` in your installed plugins list.
+### Usage Examples
 
-### Usage
-
-Once installed, Claude Code will automatically use the topical-limerick skill whenever you mention "limerick" in your request:
-
+**Mailgun:**
 ```
-Write a limerick about Python programming
+Send an email to team@example.com about the deployment being complete
 ```
 
+**Google Chat Poster:**
+```
+Post "Build completed successfully" to Google Chat
+Send a message to Google Chat about the deployment status
+```
+
+**Topical Limerick:**
 ```
 Create a limerick about SpaceX
-```
-
-```
 Limerick about the latest AI news
 ```
 
-The skill will:
-1. Automatically search for recent news about the topic
-2. Craft a properly-formatted limerick incorporating topical details
-3. Ensure proper meter (da-da-DUM pattern) and rhyme scheme (AABBA)
+## How the Plugins Work
 
-## 📖 How It Works
+Each plugin provides specialized skills that Claude Code automatically activates based on your requests:
 
-### Example Interaction
+- **Topical Limerick** activates when you mention "limerick" and searches for current news to create topical poetry
+- **Mailgun** activates when you request to send emails and handles API communication with proper formatting
+- **Google Chat Poster** activates when you mention posting to Google Chat and manages the API integration
 
-**You:** "Write a limerick about Claude AI"
-
-**Claude Code will:**
-1. Search for recent Claude AI news
-2. Find topical details (e.g., new Sonnet 4 release)
-3. Craft a limerick like:
-
-```
-Claude Sonnet Four's making waves in the press,
-With reasoning powers that truly impress.
-    It can code and create,
-    At a lightning-fast rate,
-While keeping its hallucinations much less.
-```
-
-### Recognition Patterns
-
-The skill automatically activates when you say:
-- "Write a limerick about [topic]"
-- "Make a limerick about [person]"
-- "Create a limerick for [subject]"
-- "Limerick about [anything]"
-- "Give me a limerick on [topic]"
+The plugins seamlessly integrate into your Claude Code workflow, requiring no special syntax or commands once installed.
 
 ## 🔧 For Plugin Developers
 
 ### Repository Structure
 
 ```
-limerick-skill/
+tanzu-platform-plugins/
 ├── .claude-plugin/
 │   └── marketplace.json          # Marketplace configuration
 ├── plugins/
-│   └── topical-limerick/
-│       ├── .claude-plugin/
-│       │   └── plugin.json       # Plugin metadata
-│       └── skills/
-│           └── topical-limerick/
-│               └── SKILL.md      # Skill definition
+│   ├── topical-limerick/
+│   │   ├── .claude-plugin/
+│   │   │   └── plugin.json       # Plugin metadata
+│   │   └── skills/
+│   │       └── topical-limerick/
+│   │           └── SKILL.md      # Skill definition
+│   ├── mailgun/
+│   │   └── ...
+│   └── google-chat-poster/
+│       └── ...
 └── README.md
 ```
 
 ### Testing Locally
 
 1. Clone this repository
-2. Add as a local marketplace: `/plugin marketplace add ./limerick-skill`
-3. Install the plugin: `/plugin install topical-limerick@limerick-skill`
-4. Test by requesting a limerick
+2. Add as a local marketplace: `/plugin marketplace add ./tanzu-platform-plugins`
+3. Install a plugin: `/plugin install topical-limerick@tanzu-platform-plugins`
+4. Test the plugin functionality
 
 ### Contributing
 
-To add more poetry or creative writing plugins to this marketplace:
+To add more plugins to this marketplace:
 
 1. Create a new plugin directory under `plugins/`
 2. Add proper `.claude-plugin/plugin.json` manifest
@@ -135,31 +142,23 @@ To add more poetry or creative writing plugins to this marketplace:
 4. Update `marketplace.json` with the new plugin entry
 5. Submit a pull request
 
-## 📚 Limerick Format Reference
+## Use Cases
 
-### Structure
-- **Lines 1, 2, 5:** Three stressed syllables (8-9 syllables total) - rhyme together (A)
-- **Lines 3, 4:** Two stressed syllables (5-6 syllables total) - rhyme together (B)
-- **Meter:** Anapestic (da-da-DUM pattern)
+**Development & Operations:**
+- Automate deployment notifications via email or Google Chat
+- Send build status updates to team channels
+- Notify stakeholders of system events
+- Integrate CI/CD pipelines with team communication tools
 
-### Example Pattern
+**Team Communication:**
+- Quickly send formatted emails without leaving your development environment
+- Post updates to Google Chat Spaces from Claude Code
+- Automate routine notifications and reminders
 
-```
-There ONCE was a MAN from PerU     (A - 9 syllables)
-Who DREAMED he was EATing his SHOE (A - 9 syllables)
-    He WOKE with a FRIGHT             (B - 6 syllables)
-    In the MIDdle of NIGHT            (B - 6 syllables)
-And FOUND that his DREAM had come TRUE (A - 9 syllables)
-```
-
-## 🎯 Use Cases
-
-- **Technical Content:** Make programming concepts entertaining
-- **Marketing:** Create memorable taglines and social media content
-- **Education:** Teach complex topics in a fun, memorable way
-- **Entertainment:** Generate creative content for blogs, newsletters
-- **Team Building:** Add humor to presentations and meetings
-- **Current Events:** Provide witty commentary on news and trends
+**Creative & Content:**
+- Generate entertaining limericks for technical topics
+- Create memorable content for presentations and documentation
+- Add humor to technical discussions and social media
 
 ## 🛠️ Marketplace Management
 
@@ -170,12 +169,12 @@ And FOUND that his DREAM had come TRUE (A - 9 syllables)
 
 ### Update marketplace metadata
 ```bash
-/plugin marketplace update limerick-skill
+/plugin marketplace update tanzu-platform-plugins
 ```
 
 ### Remove marketplace
 ```bash
-/plugin marketplace remove limerick-skill
+/plugin marketplace remove tanzu-platform-plugins
 ```
 
 ## 📋 Plugin Management
@@ -187,13 +186,13 @@ And FOUND that his DREAM had come TRUE (A - 9 syllables)
 
 ### Enable/disable plugin
 ```bash
-/plugin enable topical-limerick@limerick-skill
-/plugin disable topical-limerick@limerick-skill
+/plugin enable topical-limerick@tanzu-platform-plugins
+/plugin disable topical-limerick@tanzu-platform-plugins
 ```
 
 ### Uninstall plugin
 ```bash
-/plugin uninstall topical-limerick@limerick-skill
+/plugin uninstall topical-limerick@tanzu-platform-plugins
 ```
 
 ## 🔗 Resources

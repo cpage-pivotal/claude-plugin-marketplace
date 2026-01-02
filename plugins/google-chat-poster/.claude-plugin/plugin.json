@@ -1,0 +1,11 @@
+{
+  "name": "google-chat-poster",
+  "description": "Post messages to Google Chat Spaces using the Google Chat API. Use when the user requests to send, post, or publish messages to Google Chat.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Corby Page"
+  },
+  "keywords": ["google-chat", "chat", "notifications", "messaging", "collaboration", "google"],
+  "license": "MIT",
+  "skills": ["./skills/google-chat-poster"]
+}

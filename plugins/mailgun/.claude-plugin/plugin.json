@@ -1,0 +1,11 @@
+{
+  "name": "mailgun",
+  "description": "Send emails via Mailgun API. Use when the user requests to send an email, notify someone via email, or compose and deliver email messages to recipients.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Corby Page"
+  },
+  "keywords": ["email", "mailgun", "notifications", "messaging", "communication"],
+  "license": "MIT",
+  "skills": ["./skills/mailgun"]
+}

@@ -1,11 +1,11 @@
 {
-  "name": "limerick-skill",
+  "name": "tanzu-platform-plugins",
   "owner": {
     "name": "Corby Page",
     "email": "corby.page@broadcom.com"
   },
   "metadata": {
-    "description": "A curated collection of plugins for Claude Code",
+    "description": "A curated collection of plugins for Claude Code and Tanzu Platform",
     "version": "1.0.0"
   },
   "plugins": [
@@ -19,6 +19,32 @@
       },
       "keywords": ["limerick", "poetry", "writing", "news", "topical", "entertainment", "ai", "skills"],
       "category": "writing",
+      "license": "MIT",
+      "strict": true
+    },
+    {
+      "name": "mailgun",
+      "source": "./plugins/mailgun",
+      "description": "Send emails via Mailgun API. Use when the user requests to send an email, notify someone via email, or compose and deliver email messages to recipients.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Corby Page"
+      },
+      "keywords": ["email", "mailgun", "notifications", "messaging", "communication"],
+      "category": "integration",
+      "license": "MIT",
+      "strict": true
+    },
+    {
+      "name": "google-chat-poster",
+      "source": "./plugins/google-chat-poster",
+      "description": "Post messages to Google Chat Spaces using the Google Chat API. Use when the user requests to send, post, or publish messages to Google Chat.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Corby Page"
+      },
+      "keywords": ["google-chat", "chat", "notifications", "messaging", "collaboration", "google"],
+      "category": "integration",
       "license": "MIT",
       "strict": true
     }

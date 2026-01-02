@@ -47,6 +47,19 @@
       "category": "integration",
       "license": "MIT",
       "strict": true
+    },
+    {
+      "name": "cf-space-auditor",
+      "source": "./plugins/cf-space-auditor",
+      "description": "Audit Cloud Foundry spaces for compliance with memory allocation standards, instance counts, and deployment staleness. Use when the user asks to audit a CF space or check space compliance.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Corby Page"
+      },
+      "keywords": ["cloud-foundry", "cf", "audit", "compliance", "tanzu", "vmware", "monitoring"],
+      "category": "cloud-foundry",
+      "license": "MIT",
+      "strict": true
     }
   ]
 }

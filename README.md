@@ -8,6 +8,17 @@ This marketplace provides Claude Code plugins for enhancing development workflow
 
 ## Available Plugins
 
+### CF Space Auditor
+
+Audit Cloud Foundry spaces for compliance with organizational standards. This plugin performs:
+
+- **Memory allocation compliance** checks (Java apps: 1024M, Non-Java apps: 512M)
+- **Instance count monitoring** to identify multi-instance deployments
+- **Deployment staleness detection** for apps not updated in 180+ days
+- **Detailed compliance reports** with specific findings for each app
+
+**Perfect for:** Cloud Foundry compliance audits, space governance, identifying configuration drift, maintaining deployment standards
+
 ### Mailgun
 
 Send emails via the Mailgun API directly from Claude Code. This plugin enables:
@@ -61,9 +72,10 @@ Or if you've cloned this repository locally:
 
 ```bash
 # Install all plugins
-/plugin install topical-limerick@claude-plugin-marketplace
+/plugin install cf-space-auditor@claude-plugin-marketplace
 /plugin install mailgun@claude-plugin-marketplace
 /plugin install google-chat-poster@claude-plugin-marketplace
+/plugin install topical-limerick@claude-plugin-marketplace
 ```
 
 3. **Restart Claude Code** to activate the plugins
@@ -75,6 +87,12 @@ Or if you've cloned this repository locally:
 ```
 
 ### Usage Examples
+
+**CF Space Auditor:**
+```
+Audit the development space in our production org
+Check compliance for the staging space
+```
 
 **Mailgun:**
 ```
@@ -97,9 +115,10 @@ Limerick about the latest AI news
 
 Each plugin provides specialized skills that Claude Code automatically activates based on your requests:
 
-- **Topical Limerick** activates when you mention "limerick" and searches for current news to create topical poetry
+- **CF Space Auditor** activates when you mention "audit" with a CF space and performs compliance checks against organizational standards
 - **Mailgun** activates when you request to send emails and handles API communication with proper formatting
 - **Google Chat Poster** activates when you mention posting to Google Chat and manages the API integration
+- **Topical Limerick** activates when you mention "limerick" and searches for current news to create topical poetry
 
 The plugins seamlessly integrate into your Claude Code workflow, requiring no special syntax or commands once installed.
 
@@ -143,6 +162,12 @@ To add more plugins to this marketplace:
 5. Submit a pull request
 
 ## Use Cases
+
+**Cloud Foundry Governance:**
+- Audit CF spaces for compliance with organizational standards
+- Identify configuration drift across applications
+- Monitor deployment hygiene and detect stale applications
+- Enforce memory allocation policies across environments
 
 **Development & Operations:**
 - Automate deployment notifications via email or Google Chat

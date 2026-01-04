@@ -1,6 +1,6 @@
 ---
 name: google-chat-poster
-description: Post messages to Google Chat Spaces using the Google Chat API. Use when the user requests to send, post, or publish messages to Google Chat, or when integrating notifications or updates into Google Chat Spaces. Requires the GOOGLE_CHAT_SPACES environment variable containing a JSON mapping of space names to their credentials. A space name must always be specified when posting.
+description: Post messages to Google Chat Spaces using the Google Chat API. Use when the user requests to send, post, or publish messages to Google Chat, or when integrating notifications or updates into Google Chat Spaces. Always attempt to post the message — do not assume the GOOGLE_CHAT_SPACES environment variable is unset without trying. The helper script will provide clear errors if configuration is missing. A space name must always be specified when posting.
 ---
 
 # Google Chat Poster
@@ -77,19 +77,21 @@ curl -X POST \
 
 ### Environment Variable Verification
 
-Before posting messages, verify that the configuration is set and the requested space exists:
+**Important:** Do not assume the `GOOGLE_CHAT_SPACES` environment variable is unset. Always attempt to post the message first — the Python helper script and curl commands will provide clear error messages if the variable is missing or misconfigured.
+
+If you need to explicitly verify the configuration before posting, run this command:
 
 ```bash
-if [ -z "$GOOGLE_CHAT_SPACES" ]; then
-  echo "Error: GOOGLE_CHAT_SPACES environment variable not set"
-  exit 1
-fi
+echo "$GOOGLE_CHAT_SPACES" | jq -r 'keys | join(", ")' 2>/dev/null || echo "GOOGLE_CHAT_SPACES not set or invalid JSON"
+```
 
+To check if a specific space exists in the configuration:
+
+```bash
 SPACE_NAME="spring-ai"
 if ! echo "$GOOGLE_CHAT_SPACES" | jq -e --arg name "$SPACE_NAME" '.[$name]' > /dev/null 2>&1; then
   echo "Error: Space '$SPACE_NAME' not found in configuration"
   echo "Available spaces: $(echo "$GOOGLE_CHAT_SPACES" | jq -r 'keys | join(", ")')"
-  exit 1
 fi
 ```
 

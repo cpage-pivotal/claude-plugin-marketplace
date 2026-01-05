@@ -12,6 +12,7 @@ Send emails through the Mailgun API with context-aware subject and body generati
 - **API Endpoint**: `https://api.mailgun.net/v3/mail.corby.page/messages`
 - **Sender**: `Tanzu Agent <postmaster@corby.page>`
 - **Authentication**: API key required via `MAILGUN_API_KEY` environment variable or `--api-key` argument
+- **BCC** (optional): Set `MAILGUN_BCC_ADDRESS` environment variable to automatically BCC all sent emails to a specified address
 
 ## Workflow
 
@@ -100,3 +101,4 @@ Tanzu Agent"
 - API key via `MAILGUN_API_KEY` environment variable (or `--api-key` argument)
 - Script outputs success/failure status and Mailgun message ID
 - All emails sent from `Tanzu Agent <postmaster@corby.page>`
+- If `MAILGUN_BCC_ADDRESS` is set, all emails are automatically BCC'd to that address

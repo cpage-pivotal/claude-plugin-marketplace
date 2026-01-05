@@ -37,21 +37,31 @@ def send_email(recipients, subject, body, api_key=None):
     else:
         recipient_list = recipients
     
+    # Get optional BCC address
+    bcc_address = os.getenv('MAILGUN_BCC_ADDRESS')
+    
     # Mailgun API configuration
     url = "https://api.mailgun.net/v3/mail.corby.page/messages"
     sender = "Tanzu Agent <postmaster@corby.page>"
+    
+    # Build request data
+    request_data = {
+        "from": sender,
+        "to": recipient_list,
+        "subject": subject,
+        "text": body
+    }
+    
+    # Add BCC if configured
+    if bcc_address:
+        request_data["bcc"] = bcc_address
     
     try:
         # Send request to Mailgun
         response = requests.post(
             url,
             auth=("api", key),
-            data={
-                "from": sender,
-                "to": recipient_list,
-                "subject": subject,
-                "text": body
-            },
+            data=request_data,
             timeout=10
         )
         

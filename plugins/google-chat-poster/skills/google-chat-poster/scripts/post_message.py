@@ -9,8 +9,7 @@ Requires environment variable: GOOGLE_CHAT_SPACES (JSON mapping space names to c
 import os
 import sys
 import json
-import urllib.request
-import urllib.error
+import subprocess
 
 
 def get_spaces_config():
@@ -61,45 +60,69 @@ def get_space_credentials(space_name):
 def post_message(space_name, text):
     """
     Post a text message to a named Google Chat space.
-    
+
     Args:
         space_name: The name of the space (as defined in GOOGLE_CHAT_SPACES)
         text: The message text to post
-        
+
     Returns:
         dict: The response from the Google Chat API
     """
     space_id, key, token = get_space_credentials(space_name)
-    
+
     # Construct the API URL
     url = f"https://chat.googleapis.com/v1/spaces/{space_id}/messages?key={key}&token={token}"
-    
+
     # Prepare the request payload
     payload = {"text": text}
-    data = json.dumps(payload).encode('utf-8')
-    
-    # Create the request
-    req = urllib.request.Request(
-        url,
-        data=data,
-        headers={'Content-Type': 'application/json'},
-        method='POST'
-    )
-    
+    data = json.dumps(payload)
+
     try:
-        # Send the request
-        with urllib.request.urlopen(req) as response:
-            response_data = json.loads(response.read().decode('utf-8'))
-            print(f"Message posted successfully to '{space_name}'!")
-            print(f"Message name: {response_data.get('name', 'Unknown')}")
-            return response_data
-    except urllib.error.HTTPError as e:
-        error_body = e.read().decode('utf-8')
-        print(f"Error posting message (HTTP {e.code}): {e.reason}", file=sys.stderr)
-        print(f"Details: {error_body}", file=sys.stderr)
-        sys.exit(1)
-    except urllib.error.URLError as e:
-        print(f"Network error: {e.reason}", file=sys.stderr)
+        # Build curl command
+        curl_cmd = [
+            "curl",
+            "-s",  # Silent mode
+            "-w", "\n%{http_code}",  # Write HTTP status code at the end
+            "-X", "POST",
+            "-H", "Content-Type: application/json",
+            "-d", data,
+            url
+        ]
+
+        # Execute curl command
+        result = subprocess.run(
+            curl_cmd,
+            capture_output=True,
+            text=True,
+            check=False
+        )
+
+        # Parse response - split output and status code
+        output_lines = result.stdout.strip().rsplit('\n', 1)
+        if len(output_lines) == 2:
+            response_body, status_code = output_lines
+            status_code = int(status_code)
+        else:
+            print(f"Error: Failed to parse curl response: {result.stdout}", file=sys.stderr)
+            sys.exit(1)
+
+        # Check response
+        if status_code == 200:
+            try:
+                response_data = json.loads(response_body)
+                print(f"Message posted successfully to '{space_name}'!")
+                print(f"Message name: {response_data.get('name', 'Unknown')}")
+                return response_data
+            except json.JSONDecodeError:
+                print(f"Error: Failed to parse JSON response: {response_body}", file=sys.stderr)
+                sys.exit(1)
+        else:
+            print(f"Error posting message (HTTP {status_code})", file=sys.stderr)
+            print(f"Details: {response_body}", file=sys.stderr)
+            sys.exit(1)
+
+    except subprocess.SubprocessError as e:
+        print(f"Curl execution error: {str(e)}", file=sys.stderr)
         sys.exit(1)
     except Exception as e:
         print(f"Unexpected error: {str(e)}", file=sys.stderr)

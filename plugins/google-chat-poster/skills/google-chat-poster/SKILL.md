@@ -68,7 +68,7 @@ curl -X POST \
   -d "$(jq -n --arg text "$MESSAGE" '{text: $text}')"
 ```
 
-**Important:** Use `jq` to construct the JSON payload. This ensures actual newlines in your message variable are properly encoded in the JSON. Do NOT use literal `\n` in strings as they will display as text.
+**Important:** When using curl directly, use `jq` to construct the JSON payload with multiline message variables. For the helper script, you can use `\n` directly in your message string - the script automatically converts them to actual newlines.
 
 **Example usage:**
 - User request: "Send the message 'Build completed successfully' to the spring-ai Google Chat space"
@@ -81,7 +81,7 @@ curl -X POST \
 | Bold | `*text*` | `*important*` |
 | Italic | `_text_` | `_note_` |
 | Code | `` `text` `` | `` `command` `` |
-| Newline | Actual newlines in the message variable | Use multiline strings, not `\n` |
+| Newline | `\n` | Line breaks between sections |
 
 Always apply formatting to:
 - Status indicators (e.g., `*SUCCESS*`, `*FAILED*`)
@@ -146,8 +146,8 @@ python post_message.py <space_name> <message_text>
 # Post a formatted message to the spring-ai space
 python post_message.py spring-ai "*Hello* from the Google Chat API!"
 
-# Post a formatted status update with line breaks using $'...' syntax
-python post_message.py kuhn-labs-alerts $'*Build completed successfully*\n\nAll tests passed on `main` branch.'
+# Post a formatted status update with line breaks (the script converts \n to newlines)
+python post_message.py kuhn-labs-alerts "*Build completed successfully*\n\nAll tests passed on \`main\` branch."
 ```
 
 If the specified space is not found in the configuration, the script will exit with an error and list the available spaces.

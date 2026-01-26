@@ -54,7 +54,7 @@ def send_email(recipients, subject, body, api_key=None):
         "from": sender,
         "to": recipient_list,
         "subject": subject,
-        "text": body
+        "html": body
     }
     
     # Add BCC if configured
@@ -72,9 +72,10 @@ def send_email(recipients, subject, body, api_key=None):
         ]
 
         # Add form data for each field
+        # Note: Use = prefix for html to force literal content (curl treats <... as file reference)
         curl_cmd.extend(["-F", f"from={request_data['from']}"])
         curl_cmd.extend(["-F", f"subject={subject}"])
-        curl_cmd.extend(["-F", f"text={body}"])
+        curl_cmd.extend(["-F", f"html=={body}"])
 
         # Add recipients (multiple -F flags for each recipient)
         for recipient in recipient_list:

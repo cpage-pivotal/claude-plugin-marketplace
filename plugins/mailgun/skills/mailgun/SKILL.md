@@ -1,11 +1,11 @@
 ---
 name: mailgun
-description: Send emails via Mailgun API. Use when the user requests to send an email, notify someone via email, or compose and deliver email messages to recipients. Supports single or multiple recipients with dynamically generated subjects and content based on context.
+description: Send HTML emails via Mailgun API. Use when the user requests to send an email, notify someone via email, or compose and deliver email messages to recipients. Supports single or multiple recipients with dynamically generated subjects and HTML content based on context.
 ---
 
 # Mailgun Email Sender
 
-Send emails through the Mailgun API with context-aware subject and body generation.
+Send HTML emails through the Mailgun API with context-aware subject and body generation. All emails are sent as HTML for rich formatting support.
 
 ## Configuration
 
@@ -24,17 +24,17 @@ When the user requests sending an email:
 
 ## Script Usage
 
-The bundled `send_email.py` script handles all Mailgun API communication:
+The bundled `send_email.py` script handles all Mailgun API communication and sends HTML emails:
 
 ```bash
-python scripts/send_email.py <recipients> <subject> <body>
+python3 scripts/send_email.py <recipients> <subject> <html_body>
 ```
 
 ### Arguments
 
 - `recipients`: Single email or comma-separated list (e.g., "user@example.com" or "user1@example.com,user2@example.com")
 - `subject`: Email subject line
-- `body`: Email body text
+- `html_body`: Email body in HTML format (supports full HTML markup)
 - `--api-key KEY`: Optional API key override (defaults to `API_KEY` env var)
 
 ## Examples
@@ -44,23 +44,29 @@ python scripts/send_email.py <recipients> <subject> <body>
 User request: *"Send an email to cepage@gmail.com about the Q4 architecture review meeting tomorrow at 2pm"*
 
 ```bash
-python scripts/send_email.py \
+python3 scripts/send_email.py \
   "cepage@gmail.com" \
   "Reminder: Q4 Architecture Review Tomorrow" \
-  "Hi Corby,
+  "<html>
+<body>
+<p>Hi Corby,</p>
 
-This is a reminder about our Q4 Architecture Review meeting scheduled for tomorrow at 2:00 PM.
+<p>This is a reminder about our <strong>Q4 Architecture Review</strong> meeting scheduled for tomorrow at <strong>2:00 PM</strong>.</p>
 
-We'll be covering:
-- Current platform architecture
-- Proposed improvements
-- Migration strategy
-- Q&A session
+<p>We'll be covering:</p>
+<ul>
+  <li>Current platform architecture</li>
+  <li>Proposed improvements</li>
+  <li>Migration strategy</li>
+  <li>Q&amp;A session</li>
+</ul>
 
-Looking forward to seeing you there!
+<p>Looking forward to seeing you there!</p>
 
-Best regards,
-Tanzu Agent"
+<p>Best regards,<br>
+Tanzu Agent</p>
+</body>
+</html>"
 ```
 
 ### Multiple Recipients
@@ -68,15 +74,19 @@ Tanzu Agent"
 User request: *"Email the team about the deployment being complete"*
 
 ```bash
-python scripts/send_email.py \
+python3 scripts/send_email.py \
   "cepage@gmail.com,team@example.com,manager@example.com" \
   "Deployment Complete: Production Environment" \
-  "Hi Team,
+  "<html>
+<body>
+<p>Hi Team,</p>
 
-The production deployment has been completed successfully. All services are running normally.
+<p>The production deployment has been completed successfully. All services are running normally.</p>
 
-Best regards,
-Tanzu Agent"
+<p>Best regards,<br>
+Tanzu Agent</p>
+</body>
+</html>"
 ```
 
 ## Content Generation Guidelines
@@ -87,13 +97,18 @@ Tanzu Agent"
 - Professional but friendly tone
 - Examples: "Meeting Reminder: Q4 Planning", "Update: Deployment Status"
 
-**Email Body:**
+**HTML Email Body:**
+- Always wrap content in `<html><body>...</body></html>` tags
+- Use `<p>` tags for paragraphs
+- Use `<strong>` for bold and `<em>` for italic text
+- Use `<ul>` and `<li>` for bullet lists, `<ol>` for numbered lists
+- Use `<br>` for line breaks within paragraphs
+- Use `<a href="...">` for hyperlinks
+- Escape special characters (e.g., `&amp;` for &)
 - Start with appropriate greeting
 - State purpose clearly upfront
-- Use paragraphs for readability
 - Include relevant context from the user's request
 - Close professionally
-- Keep natural and contextual, not templated
 
 ## Notes
 

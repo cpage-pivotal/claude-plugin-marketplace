@@ -7,7 +7,7 @@ description: Post messages to Google Chat Spaces using the Google Chat API. Use 
 
 ## Overview
 
-Post messages to Google Chat Spaces using the Google Chat API. This skill enables sending plain text messages and formatted messages with cards to specific Chat Spaces using webhook-style authentication. Multiple spaces are supported via a single JSON configuration.
+Post formatted messages to Google Chat Spaces using the Google Chat API. This skill enables sending rich formatted messages to specific Chat Spaces using webhook-style authentication. Multiple spaces are supported via a single JSON configuration. Always use formatting (bold, italic, code, etc.) to make messages clear and readable.
 
 ## Prerequisites
 
@@ -37,11 +37,18 @@ These credentials are typically obtained when configuring a webhook or app integ
 
 ## Posting Messages
 
-A space name must always be specified when posting messages.
+A space name must always be specified when posting messages. Always use formatted messages with appropriate markup for clarity.
 
-### Basic Text Messages
+### Formatted Messages
 
-To post a plain text message to a named Google Chat space, first look up the credentials from the `GOOGLE_CHAT_SPACES` configuration:
+Google Chat supports markdown-style formatting. Always use formatting to make messages clear and readable:
+
+- `*bold*` for emphasis and important terms
+- `_italic_` for secondary emphasis
+- `` `code` `` for code, commands, file names, and technical terms
+- Combine formatting for rich, readable messages
+
+To post a formatted message to a named Google Chat space, first look up the credentials from the `GOOGLE_CHAT_SPACES` configuration:
 
 ```bash
 # Extract credentials for a specific space (e.g., "spring-ai")
@@ -50,30 +57,36 @@ SPACE_ID=$(echo "$SPACE_CONFIG" | jq -r '.space_id')
 KEY=$(echo "$SPACE_CONFIG" | jq -r '.key')
 TOKEN=$(echo "$SPACE_CONFIG" | jq -r '.token')
 
+# Use jq to properly construct JSON with newlines
+MESSAGE="*Build completed successfully*
+
+The \`main\` branch has been deployed to _production_."
+
 curl -X POST \
   "https://chat.googleapis.com/v1/spaces/${SPACE_ID}/messages?key=${KEY}&token=${TOKEN}" \
   -H 'Content-Type: application/json' \
-  -d '{
-    "text": "Your message text here"
-  }'
+  -d "$(jq -n --arg text "$MESSAGE" '{text: $text}')"
 ```
+
+**Important:** When using curl directly, use `jq` to construct the JSON payload with multiline message variables. For the helper script, you can use `\n` directly in your message string - the script automatically converts them to actual newlines.
 
 **Example usage:**
 - User request: "Send the message 'Build completed successfully' to the spring-ai Google Chat space"
-- Action: Post the message using the curl command above with the appropriate text and space name
+- Action: Post a formatted message: `*Build completed successfully*` with additional context using appropriate formatting
 
-### Messages with Formatting
+### Formatting Reference
 
-Google Chat supports basic markdown-style formatting in text messages:
+| Format | Syntax | Example |
+|--------|--------|---------|
+| Bold | `*text*` | `*important*` |
+| Italic | `_text_` | `_note_` |
+| Code | `` `text` `` | `` `command` `` |
+| Newline | `\n` | Line breaks between sections |
 
-```bash
-curl -X POST \
-  "https://chat.googleapis.com/v1/spaces/${SPACE_ID}/messages?key=${KEY}&token=${TOKEN}" \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "text": "*Bold text*, _italic text_, and `code formatting`"
-  }'
-```
+Always apply formatting to:
+- Status indicators (e.g., `*SUCCESS*`, `*FAILED*`)
+- Technical terms and commands (e.g., `` `git push` ``, `` `main` `` branch)
+- Important names or values that need emphasis
 
 ### Environment Variable Verification
 
@@ -110,13 +123,12 @@ Always check the HTTP response status code and message for details on any errors
 ## Supported Message Content
 
 The Google Chat API supports:
-- Plain text messages
-- Formatted text with basic markdown
+- Formatted text with markdown-style syntax (preferred)
 - Card messages (v1 and v2 formats)
 - Threaded replies
 - User mentions
 
-For simple notifications and status updates, plain text messages are typically sufficient.
+Always use formatted messages with bold, italic, and code markup to make notifications and status updates clear and readable.
 
 ## Helper Script
 
@@ -125,17 +137,17 @@ A Python helper script is available in `scripts/post_message.py` for more conven
 **Usage:**
 
 ```bash
-python post_message.py <space_name> <message_text>
+python3 post_message.py <space_name> <message_text>
 ```
 
 **Examples:**
 
 ```bash
-# Post to the spring-ai space
-python post_message.py spring-ai "Hello from the Google Chat API!"
+# Post a formatted message to the spring-ai space
+python3 post_message.py spring-ai "*Hello* from the Google Chat API!"
 
-# Post to kuhn-labs-alerts
-python post_message.py kuhn-labs-alerts "Build completed successfully"
+# Post a formatted status update with line breaks (the script converts \n to newlines)
+python3 post_message.py kuhn-labs-alerts "*Build completed successfully*\n\nAll tests passed on \`main\` branch."
 ```
 
 If the specified space is not found in the configuration, the script will exit with an error and list the available spaces.

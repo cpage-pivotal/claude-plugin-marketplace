@@ -135,9 +135,11 @@ def main():
         print("Usage: python post_message.py <space_name> <message_text>", file=sys.stderr)
         print("Example: python post_message.py spring-ai 'Hello from the Google Chat API!'", file=sys.stderr)
         sys.exit(1)
-    
+
     space_name = sys.argv[1]
     message_text = ' '.join(sys.argv[2:])
+    # Convert literal \n sequences to actual newlines
+    message_text = message_text.replace('\\n', '\n')
     post_message(space_name, message_text)
 
 

@@ -57,13 +57,18 @@ SPACE_ID=$(echo "$SPACE_CONFIG" | jq -r '.space_id')
 KEY=$(echo "$SPACE_CONFIG" | jq -r '.key')
 TOKEN=$(echo "$SPACE_CONFIG" | jq -r '.token')
 
+# Use jq to properly construct JSON with newlines
+MESSAGE="*Build completed successfully*
+
+The \`main\` branch has been deployed to _production_."
+
 curl -X POST \
   "https://chat.googleapis.com/v1/spaces/${SPACE_ID}/messages?key=${KEY}&token=${TOKEN}" \
   -H 'Content-Type: application/json' \
-  -d '{
-    "text": "*Build completed successfully* \n\nThe `main` branch has been deployed to _production_."
-  }'
+  -d "$(jq -n --arg text "$MESSAGE" '{text: $text}')"
 ```
+
+**Important:** Use `jq` to construct the JSON payload. This ensures actual newlines in your message variable are properly encoded in the JSON. Do NOT use literal `\n` in strings as they will display as text.
 
 **Example usage:**
 - User request: "Send the message 'Build completed successfully' to the spring-ai Google Chat space"
@@ -76,7 +81,7 @@ curl -X POST \
 | Bold | `*text*` | `*important*` |
 | Italic | `_text_` | `_note_` |
 | Code | `` `text` `` | `` `command` `` |
-| Newline | `\n` | Line breaks between sections |
+| Newline | Actual newlines in the message variable | Use multiline strings, not `\n` |
 
 Always apply formatting to:
 - Status indicators (e.g., `*SUCCESS*`, `*FAILED*`)
@@ -141,8 +146,8 @@ python post_message.py <space_name> <message_text>
 # Post a formatted message to the spring-ai space
 python post_message.py spring-ai "*Hello* from the Google Chat API!"
 
-# Post a formatted status update to kuhn-labs-alerts
-python post_message.py kuhn-labs-alerts "*Build completed successfully* \n\nAll tests passed on \`main\` branch."
+# Post a formatted status update with line breaks using $'...' syntax
+python post_message.py kuhn-labs-alerts $'*Build completed successfully*\n\nAll tests passed on `main` branch.'
 ```
 
 If the specified space is not found in the configuration, the script will exit with an error and list the available spaces.

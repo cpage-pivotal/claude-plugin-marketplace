@@ -137,17 +137,17 @@ A Python helper script is available in `scripts/post_message.py` for more conven
 **Usage:**
 
 ```bash
-python post_message.py <space_name> <message_text>
+python3 post_message.py <space_name> <message_text>
 ```
 
 **Examples:**
 
 ```bash
 # Post a formatted message to the spring-ai space
-python post_message.py spring-ai "*Hello* from the Google Chat API!"
+python3 post_message.py spring-ai "*Hello* from the Google Chat API!"
 
 # Post a formatted status update with line breaks (the script converts \n to newlines)
-python post_message.py kuhn-labs-alerts "*Build completed successfully*\n\nAll tests passed on \`main\` branch."
+python3 post_message.py kuhn-labs-alerts "*Build completed successfully*\n\nAll tests passed on \`main\` branch."
 ```
 
 If the specified space is not found in the configuration, the script will exit with an error and list the available spaces.

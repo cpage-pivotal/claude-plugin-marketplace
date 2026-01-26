@@ -27,7 +27,7 @@ When the user requests sending an email:
 The bundled `send_email.py` script handles all Mailgun API communication and sends HTML emails:
 
 ```bash
-python scripts/send_email.py <recipients> <subject> <html_body>
+python3 scripts/send_email.py <recipients> <subject> <html_body>
 ```
 
 ### Arguments
@@ -44,7 +44,7 @@ python scripts/send_email.py <recipients> <subject> <html_body>
 User request: *"Send an email to cepage@gmail.com about the Q4 architecture review meeting tomorrow at 2pm"*
 
 ```bash
-python scripts/send_email.py \
+python3 scripts/send_email.py \
   "cepage@gmail.com" \
   "Reminder: Q4 Architecture Review Tomorrow" \
   "<html>
@@ -74,7 +74,7 @@ Tanzu Agent</p>
 User request: *"Email the team about the deployment being complete"*
 
 ```bash
-python scripts/send_email.py \
+python3 scripts/send_email.py \
   "cepage@gmail.com,team@example.com,manager@example.com" \
   "Deployment Complete: Production Environment" \
   "<html>

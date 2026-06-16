@@ -8,6 +8,16 @@ This marketplace provides Claude Code plugins for enhancing development workflow
 
 ## Available Plugins
 
+### Tanzu Agent Buildpack
+
+Build and deploy AI agent demos on Tanzu Platform for Cloud Foundry using the Agent Buildpack and MCP Gateway. This plugin bundles three complementary skills:
+
+- **`tanzu-agent-deploy`** — push agent apps with `cf push`, write/edit `AGENTS.md` and `manifest.yaml`, bind a chat model (GenAI service, user-provided service, or `TANZU_AGENT_*` env vars), and register MCP servers behind an MCP Gateway
+- **`spring-ai-mcp-server`** — scaffold a Spring AI 2.0 / Spring Boot 4 MCP server (Streamable-HTTP, `@McpTool`-annotated tools) ready to build, run, and deploy
+- **`tanzu-agent-a2a`** — wire up native agent-to-agent (A2A) communication so one agent app can delegate to another as a peer (`a2a-peers.yaml`, `list_a2a_peers` / `call_a2a_peer`)
+
+**Perfect for:** Tanzu Solution Architects building agentic application demos, standing up MCP tool servers, and showcasing multi-agent delegation on Cloud Foundry
+
 ### CF Space Auditor
 
 Audit Cloud Foundry spaces for compliance with organizational standards. This plugin performs:
@@ -72,6 +82,7 @@ Or if you've cloned this repository locally:
 
 ```bash
 # Install all plugins
+/plugin install tanzu-agent-buildpack@claude-plugin-marketplace
 /plugin install cf-space-auditor@claude-plugin-marketplace
 /plugin install mailgun@claude-plugin-marketplace
 /plugin install google-chat-poster@claude-plugin-marketplace
@@ -87,6 +98,13 @@ Or if you've cloned this repository locally:
 ```
 
 ### Usage Examples
+
+**Tanzu Agent Buildpack:**
+```
+Deploy this agent with the agent buildpack and bind it to our GenAI service
+Scaffold an MCP server exposing weather lookup tools
+Set up A2A so the orchestrator agent can delegate to the data agent
+```
 
 **CF Space Auditor:**
 ```
@@ -115,6 +133,7 @@ Limerick about the latest AI news
 
 Each plugin provides specialized skills that Claude Code automatically activates based on your requests:
 
+- **Tanzu Agent Buildpack** activates when you mention deploying an agent, `cf push` for an agent buildpack app, scaffolding an MCP server, the MCP Gateway, or agent-to-agent (A2A) delegation
 - **CF Space Auditor** activates when you mention "audit" with a CF space and performs compliance checks against organizational standards
 - **Mailgun** activates when you request to send emails and handles API communication with proper formatting
 - **Google Chat Poster** activates when you mention posting to Google Chat and manages the API integration
@@ -137,6 +156,13 @@ tanzu-platform-plugins/
 │   │   └── skills/
 │   │       └── topical-limerick/
 │   │           └── SKILL.md      # Skill definition
+│   ├── tanzu-agent-buildpack/
+│   │   ├── .claude-plugin/
+│   │   │   └── plugin.json
+│   │   └── skills/               # three bundled skills
+│   │       ├── tanzu-agent-deploy/
+│   │       ├── spring-ai-mcp-server/
+│   │       └── tanzu-agent-a2a/
 │   ├── mailgun/
 │   │   └── ...
 │   └── google-chat-poster/

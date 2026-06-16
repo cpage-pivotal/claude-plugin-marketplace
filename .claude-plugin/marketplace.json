@@ -1,5 +1,5 @@
 {
-  "name": "tanzu-platform-plugins",
+  "name": "claude-plugin-marketplace",
   "owner": {
     "name": "Corby Page",
     "email": "corby.page@broadcom.com"
@@ -9,19 +9,6 @@
     "version": "1.0.0"
   },
   "plugins": [
-    {
-      "name": "topical-limerick",
-      "source": "./plugins/topical-limerick",
-      "description": "Write entertaining limericks with current news and topical references. Automatically searches for recent news and crafts witty, properly-formatted limericks.",
-      "version": "1.0.0",
-      "author": {
-        "name": "Corby Page"
-      },
-      "keywords": ["limerick", "poetry", "writing", "news", "topical", "entertainment", "ai", "skills"],
-      "category": "writing",
-      "license": "MIT",
-      "strict": true
-    },
     {
       "name": "mailgun",
       "source": "./plugins/mailgun",
@@ -62,8 +49,8 @@
       "strict": true
     },
     {
-      "name": "tanzu-agent-buildpack",
-      "source": "./plugins/tanzu-agent-buildpack",
+      "name": "agent-buildpack",
+      "source": "./plugins/agent-buildpack",
       "description": "Build and deploy AI agent demos on Tanzu Platform for Cloud Foundry using the Agent Buildpack and MCP Gateway. Bundles three skills: deploying agents and MCP Gateway wiring, scaffolding Spring AI MCP servers, and native agent-to-agent (A2A) communication.",
       "version": "1.0.0",
       "author": {

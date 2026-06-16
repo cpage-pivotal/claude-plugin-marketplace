@@ -1,30 +1,51 @@
 # Repository Structure
 
-This repository is now a **Claude Code Plugin Marketplace** that distributes the Topical Limerick plugin.
+This repository is a **Claude Code Plugin Marketplace** for Tanzu Platform and productivity plugins.
 
 ## 📁 Complete Directory Tree
 
 ```
-limerick-skill/
+claude-plugin-marketplace/
 ├── .claude-plugin/
 │   └── marketplace.json              # Marketplace manifest
 │
 ├── plugins/
-│   └── topical-limerick/
-│       ├── .claude-plugin/
-│       │   └── plugin.json           # Plugin manifest
-│       ├── skills/
-│       │   └── topical-limerick/
-│       │       └── SKILL.md          # Skill definition
-│       └── README.md                 # Plugin documentation
+│   ├── agent-buildpack/
+│   │   ├── .claude-plugin/
+│   │   │   └── plugin.json           # Plugin manifest
+│   │   ├── skills/
+│   │   │   ├── tanzu-agent-deploy/
+│   │   │   │   └── SKILL.md
+│   │   │   ├── spring-ai-mcp-server/
+│   │   │   │   └── SKILL.md
+│   │   │   └── tanzu-agent-a2a/
+│   │   │       └── SKILL.md
+│   │   └── README.md
+│   ├── cf-space-auditor/
+│   │   ├── .claude-plugin/
+│   │   │   └── plugin.json
+│   │   └── skills/
+│   │       └── cf-space-auditor/
+│   │           └── SKILL.md
+│   ├── google-chat-poster/
+│   │   ├── .claude-plugin/
+│   │   │   └── plugin.json
+│   │   └── skills/
+│   │       └── google-chat-poster/
+│   │           └── SKILL.md
+│   ├── mailgun/
+│   │   ├── .claude-plugin/
+│   │   │   └── plugin.json
+│   │   └── skills/
+│   │       └── mailgun/
+│   │           └── SKILL.md
 │
 ├── .gitignore                        # Git ignore rules
 ├── CONTRIBUTING.md                   # Contribution guidelines
 ├── LICENSE                           # MIT License
 ├── README.md                         # Main marketplace documentation
 ├── QUICKREF.md                       # Quick reference guide
-├── STRUCTURE.md                      # This file
-└── VALIDATION.md                     # Structure validation report
+└── STRUCTURE.md                      # This file
 ```
 
 ## 📄 File Descriptions
@@ -62,31 +83,19 @@ Git ignore rules for editor files, OS files, logs, and temporary files.
 #### `QUICKREF.md`
 Quick reference guide with common commands and file structure.
 
-#### `VALIDATION.md`
-Validation report confirming the marketplace structure is correct.
-
 ### Plugin Files
 
-#### `plugins/topical-limerick/.claude-plugin/plugin.json`
-Plugin manifest containing:
-- Plugin name, description, and version
-- Author information
-- Keywords and category
-- Skills directory reference
+Each plugin under `plugins/` follows this structure:
 
-#### `plugins/topical-limerick/skills/topical-limerick/SKILL.md`
-Agent skill definition that teaches Claude Code how to:
-- Write properly-formatted limericks
-- Search for current news about topics
-- Incorporate topical references
-- Follow limerick structure (AABBA rhyme, anapestic meter)
-
-#### `plugins/topical-limerick/README.md`
-Plugin-specific documentation including:
-- Feature overview
-- Installation instructions
-- Usage examples
-- Troubleshooting guide
+```
+<plugin-name>/
+├── .claude-plugin/
+│   └── plugin.json     # Plugin manifest (name, description, version, skills list)
+├── skills/
+│   └── <skill-name>/
+│       └── SKILL.md    # Skill instructions for Claude Code
+└── README.md           # Optional plugin documentation
+```
 
 ## 🔄 How It Works
 
@@ -94,95 +103,50 @@ Plugin-specific documentation including:
 
 1. **User adds marketplace:**
    ```bash
-   /plugin marketplace add corby/limerick-skill
+   /plugin marketplace add cpage-pivotal/claude-plugin-marketplace
    ```
    Claude Code reads `.claude-plugin/marketplace.json`
 
-2. **User installs plugin:**
+2. **User installs a plugin:**
    ```bash
-   /plugin install topical-limerick@limerick-skill
+   /plugin install agent-buildpack@claude-plugin-marketplace
    ```
-   Claude Code:
-   - Reads the plugin source path from marketplace.json
-   - Copies plugin files to Claude's plugin directory
-   - Loads the plugin.json manifest
-   - Registers the skills directory
+   Claude Code reads the plugin source path from marketplace.json, copies plugin files, loads plugin.json, and registers all skills.
 
-3. **User requests a limerick:**
-   ```
-   Write a limerick about AI
-   ```
-   Claude Code:
-   - Recognizes "limerick" keyword
-   - Activates the topical-limerick skill
-   - Follows SKILL.md workflow
-   - Searches web for AI news
-   - Crafts limerick with topical references
-
-### Plugin Structure
-
-```
-topical-limerick/
-├── .claude-plugin/          # Configuration
-│   └── plugin.json          # Tells Claude what this plugin provides
-└── skills/                  # Skills directory
-    └── topical-limerick/    # Individual skill
-        └── SKILL.md         # Skill instructions for Claude
-```
-
-The plugin uses **Agent Skills** - Claude reads SKILL.md and learns:
-- When to activate (recognition patterns)
-- What workflow to follow (research → craft → format)
-- Best practices (be specific, timely, clever)
-- Format requirements (AABBA rhyme, meter)
+3. **Claude activates skills automatically** based on recognition patterns defined in each SKILL.md.
 
 ## 🎯 Key Concepts
 
 ### Marketplace vs Plugin vs Skill
 
-- **Marketplace**: A catalog (this repo) that lists available plugins
-- **Plugin**: A package (topical-limerick) that extends Claude Code
-- **Skill**: A capability (writing limericks) that Claude learns from SKILL.md
+- **Marketplace**: A catalog (this repo) listing available plugins
+- **Plugin**: A package that extends Claude Code (e.g., `agent-buildpack`)
+- **Skill**: A capability Claude learns from a SKILL.md file
 
 ### File Roles
 
 - **marketplace.json**: "Here are the plugins I offer and where to find them"
-- **plugin.json**: "I am a plugin that provides these capabilities"
+- **plugin.json**: "I am a plugin that provides these skills"
 - **SKILL.md**: "Here's how to perform this specific task"
 
 ## 📦 Adding New Plugins
 
-To add more plugins to this marketplace:
-
 1. Create `plugins/new-plugin/` directory
 2. Add `.claude-plugin/plugin.json` manifest
-3. Add plugin components (skills, commands, agents, etc.)
+3. Add skills under `skills/<skill-name>/SKILL.md`
 4. Update `.claude-plugin/marketplace.json` with new plugin entry
-5. Add documentation in `plugins/new-plugin/README.md`
+5. Add `plugins/new-plugin/README.md` documentation
 
 See CONTRIBUTING.md for detailed guidelines.
 
 ## 🚀 Publishing
 
-To make this marketplace available to others:
+Push to GitHub, then users can install with:
 
-1. **Commit to Git:**
-   ```bash
-   git add .
-   git commit -m "Convert to plugin marketplace structure"
-   ```
-
-2. **Push to GitHub:**
-   ```bash
-   git push origin main
-   ```
-
-3. **Share with others:**
-   They can now use:
-   ```bash
-   /plugin marketplace add corby/limerick-skill
-   /plugin install topical-limerick@limerick-skill
-   ```
+```bash
+/plugin marketplace add cpage-pivotal/claude-plugin-marketplace
+/plugin install agent-buildpack@claude-plugin-marketplace
+```
 
 ## 🔗 Resources
 

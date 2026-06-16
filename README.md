@@ -4,11 +4,11 @@ A curated plugin marketplace for Claude Code featuring productivity and integrat
 
 ## Overview
 
-This marketplace provides Claude Code plugins for enhancing development workflows with Tanzu Platform integrations and creative tools.
+This marketplace provides Claude Code plugins for enhancing development workflows with Tanzu Platform integrations and productivity tools.
 
 ## Available Plugins
 
-### Tanzu Agent Buildpack
+### Agent Buildpack
 
 Build and deploy AI agent demos on Tanzu Platform for Cloud Foundry using the Agent Buildpack and MCP Gateway. This plugin bundles three complementary skills:
 
@@ -51,17 +51,6 @@ Post messages to Google Chat Spaces using the Google Chat API. This plugin provi
 
 **Perfect for:** Team notifications, build status updates, CI/CD integrations, workflow alerts
 
-### Topical Limerick
-
-Write entertaining limericks that blend any requested topic with current news and events. This plugin adds an AI skill that:
-
-- **Searches recent news** automatically for topical references
-- **Follows proper limerick structure** (AABBA rhyme scheme, anapestic meter)
-- **Incorporates specific details** from current events
-- **Maintains humor and wit** with surprising, clever endings
-
-**Perfect for:** Creative writing, entertainment, making technical topics fun, social media content, presentations
-
 ## 🚀 Quick Start
 
 ### Installation
@@ -82,11 +71,10 @@ Or if you've cloned this repository locally:
 
 ```bash
 # Install all plugins
-/plugin install tanzu-agent-buildpack@claude-plugin-marketplace
+/plugin install agent-buildpack@claude-plugin-marketplace
 /plugin install cf-space-auditor@claude-plugin-marketplace
 /plugin install mailgun@claude-plugin-marketplace
 /plugin install google-chat-poster@claude-plugin-marketplace
-/plugin install topical-limerick@claude-plugin-marketplace
 ```
 
 3. **Restart Claude Code** to activate the plugins
@@ -99,7 +87,7 @@ Or if you've cloned this repository locally:
 
 ### Usage Examples
 
-**Tanzu Agent Buildpack:**
+**Agent Buildpack:**
 ```
 Deploy this agent with the agent buildpack and bind it to our GenAI service
 Scaffold an MCP server exposing weather lookup tools
@@ -123,21 +111,14 @@ Post "Build completed successfully" to Google Chat
 Send a message to Google Chat about the deployment status
 ```
 
-**Topical Limerick:**
-```
-Create a limerick about SpaceX
-Limerick about the latest AI news
-```
-
 ## How the Plugins Work
 
 Each plugin provides specialized skills that Claude Code automatically activates based on your requests:
 
-- **Tanzu Agent Buildpack** activates when you mention deploying an agent, `cf push` for an agent buildpack app, scaffolding an MCP server, the MCP Gateway, or agent-to-agent (A2A) delegation
+- **Agent Buildpack** activates when you mention deploying an agent, `cf push` for an agent buildpack app, scaffolding an MCP server, the MCP Gateway, or agent-to-agent (A2A) delegation
 - **CF Space Auditor** activates when you mention "audit" with a CF space and performs compliance checks against organizational standards
 - **Mailgun** activates when you request to send emails and handles API communication with proper formatting
 - **Google Chat Poster** activates when you mention posting to Google Chat and manages the API integration
-- **Topical Limerick** activates when you mention "limerick" and searches for current news to create topical poetry
 
 The plugins seamlessly integrate into your Claude Code workflow, requiring no special syntax or commands once installed.
 
@@ -146,23 +127,19 @@ The plugins seamlessly integrate into your Claude Code workflow, requiring no sp
 ### Repository Structure
 
 ```
-tanzu-platform-plugins/
+claude-plugin-marketplace/
 ├── .claude-plugin/
 │   └── marketplace.json          # Marketplace configuration
 ├── plugins/
-│   ├── topical-limerick/
-│   │   ├── .claude-plugin/
-│   │   │   └── plugin.json       # Plugin metadata
-│   │   └── skills/
-│   │       └── topical-limerick/
-│   │           └── SKILL.md      # Skill definition
-│   ├── tanzu-agent-buildpack/
+│   ├── agent-buildpack/
 │   │   ├── .claude-plugin/
 │   │   │   └── plugin.json
 │   │   └── skills/               # three bundled skills
 │   │       ├── tanzu-agent-deploy/
 │   │       ├── spring-ai-mcp-server/
 │   │       └── tanzu-agent-a2a/
+│   ├── cf-space-auditor/
+│   │   └── ...
 │   ├── mailgun/
 │   │   └── ...
 │   └── google-chat-poster/
@@ -173,8 +150,8 @@ tanzu-platform-plugins/
 ### Testing Locally
 
 1. Clone this repository
-2. Add as a local marketplace: `/plugin marketplace add ./tanzu-platform-plugins`
-3. Install a plugin: `/plugin install topical-limerick@tanzu-platform-plugins`
+2. Add as a local marketplace: `/plugin marketplace add ./claude-plugin-marketplace`
+3. Install a plugin: `/plugin install agent-buildpack@claude-plugin-marketplace`
 4. Test the plugin functionality
 
 ### Contributing
@@ -206,11 +183,6 @@ To add more plugins to this marketplace:
 - Post updates to Google Chat Spaces from Claude Code
 - Automate routine notifications and reminders
 
-**Creative & Content:**
-- Generate entertaining limericks for technical topics
-- Create memorable content for presentations and documentation
-- Add humor to technical discussions and social media
-
 ## 🛠️ Marketplace Management
 
 ### List all marketplaces
@@ -220,12 +192,12 @@ To add more plugins to this marketplace:
 
 ### Update marketplace metadata
 ```bash
-/plugin marketplace update tanzu-platform-plugins
+/plugin marketplace update claude-plugin-marketplace
 ```
 
 ### Remove marketplace
 ```bash
-/plugin marketplace remove tanzu-platform-plugins
+/plugin marketplace remove claude-plugin-marketplace
 ```
 
 ## 📋 Plugin Management
@@ -237,13 +209,13 @@ To add more plugins to this marketplace:
 
 ### Enable/disable plugin
 ```bash
-/plugin enable topical-limerick@tanzu-platform-plugins
-/plugin disable topical-limerick@tanzu-platform-plugins
+/plugin enable agent-buildpack@claude-plugin-marketplace
+/plugin disable agent-buildpack@claude-plugin-marketplace
 ```
 
 ### Uninstall plugin
 ```bash
-/plugin uninstall topical-limerick@tanzu-platform-plugins
+/plugin uninstall agent-buildpack@claude-plugin-marketplace
 ```
 
 ## 🔗 Resources
@@ -262,5 +234,5 @@ MIT License - See plugin manifests for individual plugin licenses
 
 ---
 
-**Built for Claude Code** - Extend your AI development experience with creative writing capabilities!
+**Built for Claude Code** - Extend your AI development experience with Tanzu Platform integrations!
 

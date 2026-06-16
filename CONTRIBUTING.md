@@ -1,6 +1,6 @@
-# Contributing to Limerick Skill Marketplace
+# Contributing to Claude Plugin Marketplace
 
-Thank you for your interest in contributing to the Marketplace! 
+Thank you for your interest in contributing to the Marketplace!
 
 ## 📦 How to Contribute a Plugin
 
@@ -132,7 +132,7 @@ Your `plugin.json` must include:
 ## 🚫 What We Don't Accept
 
 - Duplicate functionality of existing plugins (unless significantly improved)
-- Plugins unrelated to creative writing or the marketplace theme
+- Plugins unrelated to the marketplace theme (Tanzu Platform, productivity, integrations, creative tools)
 - Poorly documented or untested plugins
 - Malicious code or security vulnerabilities
 - Plugins that violate Anthropic's usage policies
@@ -183,5 +183,5 @@ Have an idea for a new plugin or feature?
 
 ---
 
-**Thank you for contributing to the Claude Code creative writing ecosystem!** 🎭✨
+**Thank you for contributing to the Claude Code Plugin Marketplace!**
 

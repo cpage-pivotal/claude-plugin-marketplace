@@ -112,7 +112,7 @@ on every MCP server — that's the demo.
 
 ```bash
 /plugin marketplace add cpage-pivotal/claude-plugin-marketplace
-/plugin install tanzu-agent-buildpack@claude-plugin-marketplace
+/plugin install agent-buildpack@claude-plugin-marketplace
 ```
 
 ## Resources

@@ -2,24 +2,19 @@
 
 ## 🚀 Installation Commands
 
-### From GitHub (after publishing)
+### From GitHub
 ```bash
-/plugin marketplace add corby/limerick-skill
-/plugin install topical-limerick@limerick-skill
+/plugin marketplace add cpage-pivotal/claude-plugin-marketplace
+/plugin install agent-buildpack@claude-plugin-marketplace
+/plugin install cf-space-auditor@claude-plugin-marketplace
+/plugin install mailgun@claude-plugin-marketplace
+/plugin install google-chat-poster@claude-plugin-marketplace
 ```
 
 ### From Local Directory
 ```bash
-/plugin marketplace add /Users/corby/Projects/claude/limerick-skill
-/plugin install topical-limerick@limerick-skill
-```
-
-## 📝 Usage
-
-Simply mention "limerick" in your request:
-
-```
-Write a limerick about [topic]
+/plugin marketplace add /path/to/claude-plugin-marketplace
+/plugin install agent-buildpack@claude-plugin-marketplace
 ```
 
 ## 🔧 Plugin Management
@@ -32,42 +27,44 @@ Write a limerick about [topic]
 /plugin marketplace list
 
 # Enable/disable plugin
-/plugin enable topical-limerick@limerick-skill
-/plugin disable topical-limerick@limerick-skill
+/plugin enable agent-buildpack@claude-plugin-marketplace
+/plugin disable agent-buildpack@claude-plugin-marketplace
 
 # Uninstall plugin
-/plugin uninstall topical-limerick@limerick-skill
+/plugin uninstall agent-buildpack@claude-plugin-marketplace
 
 # Update marketplace
-/plugin marketplace update limerick-skill
+/plugin marketplace update claude-plugin-marketplace
 
 # Remove marketplace
-/plugin marketplace remove limerick-skill
+/plugin marketplace remove claude-plugin-marketplace
 ```
 
 ## 📂 File Structure
 
 ```
-limerick-skill/
+claude-plugin-marketplace/
 ├── .claude-plugin/
 │   └── marketplace.json          # Marketplace configuration
 ├── plugins/
-│   └── topical-limerick/
-│       ├── .claude-plugin/
-│       │   └── plugin.json       # Plugin manifest
-│       └── skills/
-│           └── topical-limerick/
-│               └── SKILL.md      # Skill definition
-├── README.md                     # Main documentation
-├── CONTRIBUTING.md               # How to contribute
-├── LICENSE                       # MIT License
-└── VALIDATION.md                 # Structure validation
+│   ├── agent-buildpack/
+│   │   ├── .claude-plugin/
+│   │   │   └── plugin.json
+│   │   └── skills/
+│   │       ├── tanzu-agent-deploy/SKILL.md
+│   │       ├── spring-ai-mcp-server/SKILL.md
+│   │       └── tanzu-agent-a2a/SKILL.md
+│   ├── cf-space-auditor/
+│   ├── mailgun/
+│   └── google-chat-poster/
+├── README.md
+└── CONTRIBUTING.md
 ```
 
 ## 🎯 Key Files
 
 - **marketplace.json** - Defines the marketplace and lists available plugins
-- **plugin.json** - Plugin metadata and configuration
+- **plugin.json** - Plugin metadata and skills list
 - **SKILL.md** - Agent skill definition with workflow instructions
 - **README.md** - User documentation and installation guide
 

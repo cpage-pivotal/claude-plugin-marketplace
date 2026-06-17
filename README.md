@@ -18,17 +18,6 @@ Build and deploy AI agent demos on Tanzu Platform for Cloud Foundry using the Ag
 
 **Perfect for:** Tanzu Solution Architects building agentic application demos, standing up MCP tool servers, and showcasing multi-agent delegation on Cloud Foundry
 
-### CF Space Auditor
-
-Audit Cloud Foundry spaces for compliance with organizational standards. This plugin performs:
-
-- **Memory allocation compliance** checks (Java apps: 1024M, Non-Java apps: 512M)
-- **Instance count monitoring** to identify multi-instance deployments
-- **Deployment staleness detection** for apps not updated in 180+ days
-- **Detailed compliance reports** with specific findings for each app
-
-**Perfect for:** Cloud Foundry compliance audits, space governance, identifying configuration drift, maintaining deployment standards
-
 ### Mailgun
 
 Send emails via the Mailgun API directly from Claude Code. This plugin enables:
@@ -72,7 +61,6 @@ Or if you've cloned this repository locally:
 ```bash
 # Install all plugins
 /plugin install agent-buildpack@claude-plugin-marketplace
-/plugin install cf-space-auditor@claude-plugin-marketplace
 /plugin install mailgun@claude-plugin-marketplace
 /plugin install google-chat-poster@claude-plugin-marketplace
 ```
@@ -94,12 +82,6 @@ Scaffold an MCP server exposing weather lookup tools
 Set up A2A so the orchestrator agent can delegate to the data agent
 ```
 
-**CF Space Auditor:**
-```
-Audit the development space in our production org
-Check compliance for the staging space
-```
-
 **Mailgun:**
 ```
 Send an email to team@example.com about the deployment being complete
@@ -116,7 +98,6 @@ Send a message to Google Chat about the deployment status
 Each plugin provides specialized skills that Claude Code automatically activates based on your requests:
 
 - **Agent Buildpack** activates when you mention deploying an agent, `cf push` for an agent buildpack app, scaffolding an MCP server, the MCP Gateway, or agent-to-agent (A2A) delegation
-- **CF Space Auditor** activates when you mention "audit" with a CF space and performs compliance checks against organizational standards
 - **Mailgun** activates when you request to send emails and handles API communication with proper formatting
 - **Google Chat Poster** activates when you mention posting to Google Chat and manages the API integration
 
@@ -138,8 +119,6 @@ claude-plugin-marketplace/
 │   │       ├── tanzu-agent-deploy/
 │   │       ├── spring-ai-mcp-server/
 │   │       └── tanzu-agent-a2a/
-│   ├── cf-space-auditor/
-│   │   └── ...
 │   ├── mailgun/
 │   │   └── ...
 │   └── google-chat-poster/
@@ -165,12 +144,6 @@ To add more plugins to this marketplace:
 5. Submit a pull request
 
 ## Use Cases
-
-**Cloud Foundry Governance:**
-- Audit CF spaces for compliance with organizational standards
-- Identify configuration drift across applications
-- Monitor deployment hygiene and detect stale applications
-- Enforce memory allocation policies across environments
 
 **Development & Operations:**
 - Automate deployment notifications via email or Google Chat

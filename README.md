@@ -1,6 +1,6 @@
-# Tanzu Platform Plugin Marketplace
+# Developer Plugin Marketplace
 
-A curated plugin marketplace for Claude Code featuring productivity and integration plugins for Tanzu Platform.
+A curated plugin marketplace for Claude Code featuring productivity and integration plugins for AI Developers.
 
 ## Overview
 

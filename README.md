@@ -29,6 +29,19 @@ Send emails via the Mailgun API directly from Claude Code. This plugin enables:
 
 **Perfect for:** Automated notifications, team communications, workflow integrations, email automation
 
+### Application Advisor
+
+Automate Spring dependency upgrades using [Broadcom Application Advisor](https://techdocs.broadcom.com/us/en/vmware-tanzu/spring/application-advisor/1-6/app-advisor/what-is-app-advisor.html). This plugin guides you through the full integration:
+
+- **Registry token setup** — obtain credentials from the Broadcom Support Portal
+- **Maven configuration** — add the enterprise repository and credentials to `settings.xml` and `pom.xml`
+- **CLI installation** — download the `advisor` binary for your OS/architecture
+- **Upgrade plans** — run `advisor upgrade-plan get` and interpret results, including blocked dependency handling
+- **GitHub Actions workflow** — CI integration that opens upgrade PRs automatically on every push to `main`
+- **OpenRewrite recipes** — run Broadcom's commercial Spring Boot 4.x upgrade recipes directly when the advisor can't orchestrate an upgrade automatically
+
+**Perfect for:** Spring Boot application teams that want incremental, automated dependency upgrades with minimal manual intervention
+
 ### Google Chat Poster
 
 Post messages to Google Chat Spaces using the Google Chat API. This plugin provides:
@@ -61,6 +74,7 @@ Or if you've cloned this repository locally:
 ```bash
 # Install all plugins
 /plugin install agent-buildpack@claude-plugin-marketplace
+/plugin install application-advisor@claude-plugin-marketplace
 /plugin install mailgun@claude-plugin-marketplace
 /plugin install google-chat-poster@claude-plugin-marketplace
 ```
@@ -82,6 +96,12 @@ Scaffold an MCP server exposing weather lookup tools
 Set up A2A so the orchestrator agent can delegate to the data agent
 ```
 
+**Application Advisor:**
+```
+Set up Application Advisor for this Spring Boot project
+Add a GitHub workflow to automate Spring dependency upgrades
+```
+
 **Mailgun:**
 ```
 Send an email to team@example.com about the deployment being complete
@@ -98,6 +118,7 @@ Send a message to Google Chat about the deployment status
 Each plugin provides specialized skills that Claude Code automatically activates based on your requests:
 
 - **Agent Buildpack** activates when you mention deploying an agent, `cf push` for an agent buildpack app, scaffolding an MCP server, the MCP Gateway, or agent-to-agent (A2A) delegation
+- **Application Advisor** activates when you mention Spring upgrades, Application Advisor, the advisor CLI, Broadcom registry tokens, or automating dependency bumps
 - **Mailgun** activates when you request to send emails and handles API communication with proper formatting
 - **Google Chat Poster** activates when you mention posting to Google Chat and manages the API integration
 
@@ -119,6 +140,9 @@ claude-plugin-marketplace/
 │   │       ├── tanzu-agent-deploy/
 │   │       ├── spring-ai-mcp-server/
 │   │       └── tanzu-agent-a2a/
+│   ├── application-advisor/
+│   │   └── skills/
+│   │       └── application-advisor/
 │   ├── mailgun/
 │   │   └── ...
 │   └── google-chat-poster/

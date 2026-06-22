@@ -40,10 +40,10 @@ jobs:
         run: |
           curl -fsSL \
             -H "Authorization: Bearer ${{ secrets.BROADCOM_REGISTRY_TOKEN }}" \
-            -o advisor-cli.tar \
+            -o /tmp/advisor-cli.tar \
             "https://packages.broadcom.com/artifactory/spring-enterprise/com/vmware/tanzu/spring/application-advisor-cli-linux/1.6.4/application-advisor-cli-linux-1.6.4.tar"
           mkdir -p ~/bin
-          tar -xf advisor-cli.tar -C ~/bin --strip-components=1 --exclude=./META-INF
+          tar -xf /tmp/advisor-cli.tar -C ~/bin --strip-components=1 --exclude=./META-INF
           echo "$HOME/bin" >> $GITHUB_PATH
 
       - name: Generate build configuration

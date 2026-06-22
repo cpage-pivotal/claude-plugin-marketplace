@@ -1,0 +1,77 @@
+name: Application Advisor
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # full history needed for git push
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Configure Maven settings
+        run: |
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml <<EOF
+          <settings>
+            <servers>
+              <server>
+                <id>spring-enterprise-subscription</id>
+                <username>${{ secrets.BROADCOM_USERNAME }}</username>
+                <password>${{ secrets.BROADCOM_REGISTRY_TOKEN }}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+
+      - name: Install Application Advisor CLI
+        run: |
+          curl -fsSL \
+            -H "Authorization: Bearer ${{ secrets.BROADCOM_REGISTRY_TOKEN }}" \
+            -o advisor-cli.tar \
+            "https://packages.broadcom.com/artifactory/spring-enterprise/com/vmware/tanzu/spring/application-advisor-cli-linux/1.6.4/application-advisor-cli-linux-1.6.4.tar"
+          mkdir -p ~/bin
+          tar -xf advisor-cli.tar -C ~/bin --strip-components=1 --exclude=./META-INF
+          echo "$HOME/bin" >> $GITHUB_PATH
+
+      - name: Generate build configuration
+        run: advisor build-config get
+
+      - name: Configure git identity
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+
+      - name: Apply upgrade plan
+        run: advisor upgrade-plan apply
+
+      - name: Open PR if changes were made
+        env:
+          GH_TOKEN: ${{ secrets.GIT_TOKEN_FOR_PRS }}
+        run: |
+          if git diff --quiet && git diff --staged --quiet; then
+            echo "No changes – project is already up to date."
+            exit 0
+          fi
+          BRANCH="advisor-upgrade-$(date +%Y%m%d-%H%M%S)"
+          git checkout -b "$BRANCH"
+          git add -A
+          git commit -m "chore: apply Application Advisor upgrade step"
+          git push "https://x-access-token:${{ secrets.GIT_TOKEN_FOR_PRS }}@github.com/${{ github.repository }}.git" "$BRANCH"
+          gh pr create \
+            --title "chore: apply Application Advisor upgrade step" \
+            --body "Automated upgrade PR opened by Application Advisor." \
+            --base main \
+            --head "$BRANCH"

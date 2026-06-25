@@ -38,10 +38,13 @@ jobs:
 
       - name: Install Application Advisor CLI
         run: |
+          ADVISOR_VERSION=$(curl -sf \
+            -H "Authorization: Bearer ${{ secrets.BROADCOM_REGISTRY_TOKEN }}" \
+            "https://packages.broadcom.com/artifactory/api/search/latestVersion?g=com.vmware.tanzu.spring&a=application-advisor-cli-linux&repos=spring-enterprise")
           curl -fsSL \
             -H "Authorization: Bearer ${{ secrets.BROADCOM_REGISTRY_TOKEN }}" \
             -o /tmp/advisor-cli.tar \
-            "https://packages.broadcom.com/artifactory/spring-enterprise/com/vmware/tanzu/spring/application-advisor-cli-linux/1.6.4/application-advisor-cli-linux-1.6.4.tar"
+            "https://packages.broadcom.com/artifactory/spring-enterprise/com/vmware/tanzu/spring/application-advisor-cli-linux/${ADVISOR_VERSION}/application-advisor-cli-linux-${ADVISOR_VERSION}.tar"
           mkdir -p ~/bin
           tar -xf /tmp/advisor-cli.tar -C ~/bin --strip-components=1 --exclude=./META-INF
           echo "$HOME/bin" >> $GITHUB_PATH

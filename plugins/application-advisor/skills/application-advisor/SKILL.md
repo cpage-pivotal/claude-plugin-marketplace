@@ -112,35 +112,43 @@ Place these blocks before `<build>` in `pom.xml`. For Gradle projects, see the
 ## Step 4 — Install the Advisor CLI
 
 Detect the OS and CPU architecture (`uname -s` and `uname -m`) and download
-the matching binary from the enterprise repo. Current version: **1.6.4**.
+the matching binary from the enterprise repo. Resolve the latest available
+version dynamically at install time.
 
-| OS | Architecture | Artifact name |
-|----|-------------|---------------|
-| Linux | x86_64 | `application-advisor-cli-linux-1.6.4` |
-| macOS | Intel (x86_64) | `application-advisor-cli-macos-1.6.4` |
-| macOS | Apple Silicon (arm64) | `application-advisor-cli-macos-arm64-1.6.4` |
-| Windows | x86_64 | `application-advisor-cli-windows-1.6.4` |
+| OS | Architecture | Variant |
+|----|-------------|---------|
+| Linux | x86_64 | `linux` |
+| macOS | Intel (x86_64) | `macos` |
+| macOS | Apple Silicon (arm64) | `macos-arm64` |
+| Windows | x86_64 | `windows` |
 
 Base download URL pattern:
 ```
 https://packages.broadcom.com/artifactory/spring-enterprise/com/vmware/tanzu/spring/
-  application-advisor-cli-{VARIANT}/1.6.4/application-advisor-cli-{VARIANT}-1.6.4.tar
+  application-advisor-cli-{VARIANT}/{VERSION}/application-advisor-cli-{VARIANT}-{VERSION}.tar
 ```
+
+Resolve the latest version via the Artifactory API, then download:
 
 **macOS ARM64 example:**
 ```bash
 REGISTRY_TOKEN="<token>"
 
+# Resolve latest released version
+ADVISOR_VERSION=$(curl -sf \
+  -H "Authorization: Bearer $REGISTRY_TOKEN" \
+  "https://packages.broadcom.com/artifactory/api/search/latestVersion?g=com.vmware.tanzu.spring&a=application-advisor-cli-linux&repos=spring-enterprise")
+
 curl -fsSL \
   -H "Authorization: Bearer $REGISTRY_TOKEN" \
   -o /tmp/advisor-cli.tar \
-  "https://packages.broadcom.com/artifactory/spring-enterprise/com/vmware/tanzu/spring/application-advisor-cli-macos-arm64/1.6.4/application-advisor-cli-macos-arm64-1.6.4.tar"
+  "https://packages.broadcom.com/artifactory/spring-enterprise/com/vmware/tanzu/spring/application-advisor-cli-macos-arm64/${ADVISOR_VERSION}/application-advisor-cli-macos-arm64-${ADVISOR_VERSION}.tar"
 
 mkdir -p ~/bin
 tar -xf /tmp/advisor-cli.tar -C ~/bin --strip-components=1 --exclude=./META-INF
 ```
 
-Verify with `~/bin/advisor --version` (expected: `Version: 1.6.4`).
+Verify with `~/bin/advisor --version`.
 
 If `~/bin` is not on `$PATH`, remind the user to add `export PATH="$HOME/bin:$PATH"`
 to their shell profile (`~/.zshrc` or `~/.bashrc`).

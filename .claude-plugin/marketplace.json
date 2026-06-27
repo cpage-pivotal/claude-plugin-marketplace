@@ -49,6 +49,19 @@
       "strict": true
     },
     {
+      "name": "application-advisor",
+      "source": "./plugins/application-advisor",
+      "description": "Automate Spring dependency upgrades using Broadcom Application Advisor. Use when the user asks about Spring upgrades, Application Advisor, the advisor CLI, Broadcom registry tokens, or automated dependency management for Spring projects.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Corby Page"
+      },
+      "keywords": ["spring", "spring-boot", "dependencies", "upgrades", "broadcom", "application-advisor", "openrewrite", "maven"],
+      "category": "spring",
+      "license": "MIT",
+      "strict": true
+    },
+    {
       "name": "agent-buildpack",
       "source": "./plugins/agent-buildpack",
       "description": "Build and deploy AI agent demos on Tanzu Platform for Cloud Foundry using the Agent Buildpack and MCP Gateway. Bundles three skills: deploying agents and MCP Gateway wiring, scaffolding Spring AI MCP servers, and native agent-to-agent (A2A) communication.",

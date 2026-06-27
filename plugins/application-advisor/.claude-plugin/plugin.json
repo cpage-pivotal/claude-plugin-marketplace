@@ -1,0 +1,11 @@
+{
+  "name": "application-advisor",
+  "description": "Automate Spring dependency upgrades using Broadcom Application Advisor. Use when the user asks about Spring upgrades, Application Advisor, the advisor CLI, Broadcom registry tokens, or automated dependency management for Spring projects.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Corby Page"
+  },
+  "keywords": ["spring", "spring-boot", "dependencies", "upgrades", "broadcom", "application-advisor", "openrewrite", "maven"],
+  "license": "MIT",
+  "skills": ["./skills/application-advisor"]
+}

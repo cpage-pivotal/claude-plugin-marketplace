@@ -1,0 +1,62 @@
+name: Application Advisor Patch
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'   # weekly, Monday 06:00 UTC — adjust to taste
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # full history needed for git push
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Configure Maven settings
+        run: |
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml <<EOF
+          <settings>
+            <servers>
+              <server>
+                <id>spring-enterprise-subscription</id>
+                <username>${{ secrets.BROADCOM_USERNAME }}</username>
+                <password>${{ secrets.BROADCOM_REGISTRY_TOKEN }}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+
+      - name: Install Application Advisor CLI
+        run: |
+          ADVISOR_VERSION=$(curl -sf \
+            -H "Authorization: Bearer ${{ secrets.BROADCOM_REGISTRY_TOKEN }}" \
+            "https://packages.broadcom.com/artifactory/api/search/latestVersion?g=com.vmware.tanzu.spring&a=application-advisor-cli-linux&repos=spring-enterprise")
+          curl -fsSL \
+            -H "Authorization: Bearer ${{ secrets.BROADCOM_REGISTRY_TOKEN }}" \
+            -o /tmp/advisor-cli.tar \
+            "https://packages.broadcom.com/artifactory/spring-enterprise/com/vmware/tanzu/spring/application-advisor-cli-linux/${ADVISOR_VERSION}/application-advisor-cli-linux-${ADVISOR_VERSION}.tar"
+          mkdir -p ~/bin
+          tar -xf /tmp/advisor-cli.tar -C ~/bin --strip-components=1 --exclude=./META-INF
+          echo "$HOME/bin" >> $GITHUB_PATH
+
+      - name: Configure git identity
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+
+      # Requires an .advisor.yml with `enabled: true` committed to the repo root.
+      - name: Apply patches and open PR
+        env:
+          GIT_TOKEN_FOR_PRS: ${{ secrets.GIT_TOKEN_FOR_PRS }}
+        run: advisor patch apply --push --from-yml

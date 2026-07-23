@@ -28,8 +28,10 @@ on every push to `main`.
 5. Running `advisor build-config get` and `advisor upgrade-plan get`
 6. Interpreting upgrade plan output and handling blocked dependencies
 7. Applying upgrades and opening PRs with `advisor upgrade-plan apply --push`
-8. Creating a `.github/workflows/application-advisor.yml` workflow for CI
-9. Running Broadcom commercial OpenRewrite recipes for Spring Boot 4.x directly
+8. Applying security/bug-fix patches with `advisor patch apply` and `.advisor.yml`
+9. Creating `.github/workflows/application-advisor.yml` and
+   `.github/workflows/application-advisor-patch.yml` workflows for CI
+10. Running Broadcom commercial OpenRewrite recipes for Spring Boot 4.x directly
 
 ## Prerequisites
 
@@ -47,5 +49,6 @@ on every push to `main`.
 ## Resources
 
 - [Application Advisor docs](https://techdocs.broadcom.com/us/en/vmware-tanzu/spring/application-advisor/1-6/app-advisor/what-is-app-advisor.html)
+- [Patching Spring applications](https://techdocs.broadcom.com/us/en/vmware-tanzu/spring/application-advisor/1-6/app-advisor/patch-spring-app.html)
 - [Generate a registry token](https://knowledge.broadcom.com/external/article/421110)
 - [Enterprise artifact repository guide](https://techdocs.broadcom.com/us/en/vmware-tanzu/spring/tanzu-spring/commercial/spring-tanzu/guide-artifact-repository-developers.html)

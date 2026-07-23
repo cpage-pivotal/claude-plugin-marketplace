@@ -2,15 +2,17 @@
 name: application-advisor
 description: >
   Integrate Broadcom's Application Advisor (Tanzu Spring) to automate Spring
-  dependency upgrades in a Git repository. Use this skill whenever the user
-  wants to set up Application Advisor, automate Spring Boot upgrades, run
-  OpenRewrite upgrade recipes against a Spring project, configure the Broadcom
-  enterprise Maven repository, install the advisor CLI, get an upgrade plan for
-  a Spring app, create upgrade mappings for third-party libraries, or add a
-  GitHub Actions workflow that opens upgrade PRs automatically. Trigger even if
-  the user only mentions "Spring upgrades", "App Advisor", "advisor CLI",
-  "Broadcom registry token", or "automate dependency bumps" without naming the
-  tool explicitly.
+  dependency upgrades and security patches in a Git repository. Use this skill
+  whenever the user wants to set up Application Advisor, automate Spring Boot
+  upgrades, apply security/bug-fix patches to dependencies, run OpenRewrite
+  upgrade recipes against a Spring project, configure the Broadcom enterprise
+  Maven repository, install the advisor CLI, get an upgrade plan for a Spring
+  app, create upgrade mappings for third-party libraries, configure
+  `.advisor.yml`, or add a GitHub Actions workflow that opens upgrade or patch
+  PRs automatically. Trigger even if the user only mentions "Spring upgrades",
+  "App Advisor", "advisor CLI", "Broadcom registry token", "patch apply",
+  "advisor.yml", or "automate dependency bumps" without naming the tool
+  explicitly.
 ---
 
 # Application Advisor Integration
@@ -226,17 +228,90 @@ when you want to reduce PR noise.
 > `spring-boot-to-3.4.x-hibernate-orm-to-6.6.x-jackson-to-2.18.x-…`). Steps
 > that upgrade many libraries produce branch names exceeding GitHub's 255-byte ref
 > limit, causing PR creation to fail with a 422 error even though the upgrade was
-> applied successfully. Use the GitHub Actions workflow approach in Step 7 instead,
+> applied successfully. Use the GitHub Actions workflow approach in Step 8 instead,
 > which creates a short datestamped branch name.
 
 ---
 
-## Step 7 — GitHub Actions Workflow
+## Step 7 — Apply Security Patches
 
-Read `references/github-workflow.yml` for the complete workflow template. The
-workflow runs on every push to `main`, downloads the Linux advisor CLI, applies
-the upgrade with `advisor upgrade-plan apply`, then opens a PR using a short
-datestamped branch name via the `gh` CLI.
+Since 1.6.5, the advisor can also **patch** dependencies instead of upgrading
+them. A patch stays within the dependency's current minor version and picks up
+CVE fixes and bug fixes (e.g. `2.7.3` → `2.7.34.1`), whereas `upgrade-plan`
+moves to a new minor or major version. Use patches when the user wants CVEs
+closed without the risk of a version bump; use `upgrade-plan` (Steps 5–6) when
+they want to move onto a newer release line.
+
+```bash
+advisor patch apply
+```
+
+This queries the latest available patch version for every dependency in the
+project's SBOM and rewrites `pom.xml` / `build.gradle` in place: explicit
+dependency versions, the parent project version, managed dependency versions,
+new managed dependencies where available, and removes redundant managed
+libraries pulled in from imported SBOMs.
+
+> Patch lookups hit Maven Central for every dependency in the SBOM, so
+> `advisor patch apply` can take several minutes on a large project. It's
+> designed to run regularly in CI, not interactively on every invocation.
+
+### Automating patch PRs
+
+Unlike `upgrade-plan apply` (see the `--push` warning in Step 6), patch PR
+creation is safe to drive with `--push` directly — a patch step only ever
+touches the version of one release line per dependency, so branch names don't
+balloon the way concatenated upgrade branch names do:
+
+```bash
+advisor patch apply --push --from-yml
+```
+
+`--from-yml` reads settings from an `.advisor.yml` file in the repo root:
+
+```yaml
+enabled: true
+
+ignore:
+  # ignore a specific dependency entirely
+  - dependency-name: "com.example:pinned-lib"
+  # ignore only certain version ranges (Dependabot-style)
+  - dependency-name: "org.springframework.boot"
+    versions: ["3.x"]
+  # wildcard an entire group
+  - dependency-name: "com.acme:*"
+```
+
+`.advisor.yml` replaces the older `.spring-app-advisor.yml` filename — if both
+are present, `.advisor.yml` takes precedence, though the old filename is still
+recognized.
+
+**Required for `--push`:** `GIT_TOKEN_FOR_PRS` with `repo` write access, same
+as the upgrade workflow. Against a self-hosted Git instance, also pass
+`--scm-host=<host>` or set the `ADVISOR_SCM_HOST` environment variable.
+
+**Gradle projects resolving plugins from an internal repository** also need:
+```bash
+ADVISOR_DEFAULT_OSS_PLUGINS_REPOSITORY=<url>
+ADVISOR_DEFAULT_OSS_PLUGINS_USERNAME=<user>
+ADVISOR_DEFAULT_OSS_PLUGINS_PASSWORD=<password>
+```
+
+Reference: https://techdocs.broadcom.com/us/en/vmware-tanzu/spring/application-advisor/1-6/app-advisor/patch-spring-app.html
+
+---
+
+## Step 8 — GitHub Actions Workflow
+
+Read `references/github-workflow.yml` for the complete upgrade-PR workflow
+template, and `references/github-workflow-patch.yml` for the patch-PR
+equivalent. The upgrade workflow runs on every push to `main`, downloads the
+Linux advisor CLI, applies the upgrade with `advisor upgrade-plan apply`, then
+opens a PR using a short datestamped branch name via the `gh` CLI. The patch
+workflow instead runs on a schedule (patches are best applied regularly, not
+on every push) and calls `advisor patch apply --push --from-yml`, which needs
+an `.advisor.yml` with `enabled: true` committed to the repo. The two
+workflows can coexist in the same repository.
 
 **GitHub secrets to configure** (`Settings → Secrets → Actions`):
 
@@ -248,9 +323,10 @@ datestamped branch name via the `gh` CLI.
 
 > Use a PAT (not `secrets.GITHUB_TOKEN`) for `GIT_TOKEN_FOR_PRS`. PRs created
 > by the built-in `GITHUB_TOKEN` don't trigger other workflow runs, so CI checks
-> on the upgrade PR won't fire.
+> on the upgrade/patch PR won't fire.
 
-Write the workflow to `.github/workflows/application-advisor.yml`.
+Write the workflow(s) to `.github/workflows/application-advisor.yml` and
+`.github/workflows/application-advisor-patch.yml`.
 
 ---
 
@@ -297,3 +373,5 @@ Bump the BOM version manually in `pom.xml`:
 | `Could not apply the recipe(s)` with a `.advisor/errors/*.log` | An existing `rewrite-maven-plugin` in `pom.xml` has `<activeRecipes>` configured — Maven merges those recipes with the advisor's own, causing a conflict | Remove the `rewrite-maven-plugin` block from `pom.xml`; the advisor manages its own rewrite invocations |
 | Upgrade PR doesn't trigger CI checks | `GIT_TOKEN_FOR_PRS` is `GITHUB_TOKEN` | Switch to a personal access token with `repo` scope |
 | PR creation fails with `422 refs longer than 255 bytes are not allowed` | `advisor upgrade-plan apply --push` auto-generates a branch name listing every upgraded library; on steps with many libraries the name exceeds GitHub's limit | Don't use `--push`; instead run `advisor upgrade-plan apply` then open the PR with `gh pr create` using a short datestamped branch name (see `references/github-workflow.yml`) |
+| `advisor patch apply` runs for several minutes with no output | Expected — it looks up the latest patch version for every SBOM dependency against Maven Central | Run it in CI on a schedule rather than interactively; not a hang |
+| `advisor patch apply --from-yml` doesn't pick up ignore rules | Settings are in `.spring-app-advisor.yml` but `.advisor.yml` also exists | `.advisor.yml` takes precedence when both are present — consolidate settings there |

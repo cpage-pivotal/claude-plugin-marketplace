@@ -113,6 +113,11 @@ Place these blocks before `<build>` in `pom.xml`. For Gradle projects, see the
 
 ## Step 4 — Install the Advisor CLI
 
+**Prerequisite:** Java 17 minimum on `$PATH` to run the CLI itself (a JDK
+manager like sdkman is handy if the target project builds with an older
+Java version — e.g. 8 or 11 — since the CLI still needs 17+ to execute even
+when patching/upgrading a project on an older baseline).
+
 Detect the OS and CPU architecture (`uname -s` and `uname -m`) and download
 the matching binary from the enterprise repo. Resolve the latest available
 version dynamically at install time.

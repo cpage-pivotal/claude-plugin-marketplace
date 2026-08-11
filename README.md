@@ -18,6 +18,20 @@ Build and deploy AI agent demos on Tanzu Platform for Cloud Foundry using the Ag
 
 **Perfect for:** Tanzu Solution Architects building agentic application demos, standing up MCP tool servers, and showcasing multi-agent delegation on Cloud Foundry
 
+### Tanzu Cost Report
+
+Generate a cost optimization report for a Tanzu Platform estate from Tanzu Hub's entity graph and Telemetry pricing data, rendered as a self-contained HTML artifact:
+
+- **Findings in three tiers** — broken/wasted apps, stale apps, and orphaned service instances, deduplicated so an app that's both routeless and crash-looping counts once
+- **Modeled vs. live-metered cost** kept as distinct numbers, with explicit metering-coverage tiles
+- **Rate card coverage** resolved through `ServiceInstance → ServicePlan → ServicePlanGroup`, so "unpriced because no rate card exists" is separated from "$0 because idle"
+- **Top spenders** by space and org
+- **A preflight validator** that fails loudly on the input problems that have previously shipped wrong figures
+
+Requires a `tanzu-hub` MCP server connected in your session — configure that separately (see the plugin README). All queries are read-only.
+
+**Perfect for:** Platform teams and FinOps reviews that need a defensible picture of what a Tanzu foundation is spending and what can be safely reclaimed
+
 ### Mailgun
 
 Send emails via the Mailgun API directly from Claude Code. This plugin enables:
@@ -74,6 +88,7 @@ Or if you've cloned this repository locally:
 ```bash
 # Install all plugins
 /plugin install agent-buildpack@claude-plugin-marketplace
+/plugin install tanzu-cost-report@claude-plugin-marketplace
 /plugin install application-advisor@claude-plugin-marketplace
 /plugin install mailgun@claude-plugin-marketplace
 /plugin install google-chat-poster@claude-plugin-marketplace
@@ -94,6 +109,13 @@ Or if you've cloned this repository locally:
 Deploy this agent with the agent buildpack and bind it to our GenAI service
 Scaffold an MCP server exposing weather lookup tools
 Set up A2A so the orchestrator agent can delegate to the data agent
+```
+
+**Tanzu Cost Report:**
+```
+Generate a cost optimization report for our Tanzu foundations
+Refresh the Tanzu cost report with a 90-day staleness threshold
+Which orphaned service instances are costing us the most?
 ```
 
 **Application Advisor:**
@@ -118,6 +140,7 @@ Send a message to Google Chat about the deployment status
 Each plugin provides specialized skills that Claude Code automatically activates based on your requests:
 
 - **Agent Buildpack** activates when you mention deploying an agent, `cf push` for an agent buildpack app, scaffolding an MCP server, the MCP Gateway, or agent-to-agent (A2A) delegation
+- **Tanzu Cost Report** activates when you ask for, refresh, or regenerate a Tanzu cost/FinOps report, or ask about wasted apps, stale apps, or orphaned service instances across foundations
 - **Application Advisor** activates when you mention Spring upgrades, Application Advisor, the advisor CLI, Broadcom registry tokens, or automating dependency bumps
 - **Mailgun** activates when you request to send emails and handles API communication with proper formatting
 - **Google Chat Poster** activates when you mention posting to Google Chat and manages the API integration
@@ -140,6 +163,14 @@ claude-plugin-marketplace/
 │   │       ├── tanzu-agent-deploy/
 │   │       ├── spring-ai-mcp-server/
 │   │       └── tanzu-agent-a2a/
+│   ├── tanzu-cost-report/
+│   │   ├── .claude-plugin/
+│   │   │   └── plugin.json
+│   │   └── skills/
+│   │       └── cost-optimization-report/
+│   │           ├── SKILL.md
+│   │           ├── scripts/      # pull, validate, compute, render
+│   │           └── references/   # Tanzu Hub GraphQL notes
 │   ├── application-advisor/
 │   │   └── skills/
 │   │       └── application-advisor/

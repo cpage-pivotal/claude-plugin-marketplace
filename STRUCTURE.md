@@ -21,6 +21,15 @@ claude-plugin-marketplace/
 │   │   │   └── tanzu-agent-a2a/
 │   │   │       └── SKILL.md
 │   │   └── README.md
+│   ├── tanzu-cost-report/
+│   │   ├── .claude-plugin/
+│   │   │   └── plugin.json
+│   │   ├── skills/
+│   │   │   └── cost-optimization-report/
+│   │   │       ├── SKILL.md
+│   │   │       ├── scripts/          # pull, validate, compute, render
+│   │   │       └── references/       # Tanzu Hub GraphQL notes
+│   │   └── README.md
 │   ├── cf-space-auditor/
 │   │   ├── .claude-plugin/
 │   │   │   └── plugin.json

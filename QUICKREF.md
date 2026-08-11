@@ -54,6 +54,9 @@ claude-plugin-marketplace/
 │   │       ├── tanzu-agent-deploy/SKILL.md
 │   │       ├── spring-ai-mcp-server/SKILL.md
 │   │       └── tanzu-agent-a2a/SKILL.md
+│   ├── tanzu-cost-report/
+│   │   └── skills/
+│   │       └── cost-optimization-report/SKILL.md
 │   ├── cf-space-auditor/
 │   ├── mailgun/
 │   └── google-chat-poster/

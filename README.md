@@ -67,6 +67,17 @@ Post messages to Google Chat Spaces using the Google Chat API. This plugin provi
 
 **Perfect for:** Team notifications, build status updates, CI/CD integrations, workflow alerts
 
+### Hermes Tweet
+
+Guide Hermes Agent X/Twitter research, monitoring, exports, and explicitly enabled actions through the native Hermes Tweet plugin.
+
+- **Offline route discovery** through `tweet_explore`
+- **Catalog-listed reads** through `tweet_read`
+- **Private reads and mutations** through approval-gated `tweet_action`
+- **Runtime-only credentials** through `XQUIK_API_KEY`
+
+**Perfect for:** Hermes Agent operators who need safe, source-backed X/Twitter tool routing
+
 ## 🚀 Quick Start
 
 ### Installation
@@ -92,6 +103,7 @@ Or if you've cloned this repository locally:
 /plugin install application-advisor@claude-plugin-marketplace
 /plugin install mailgun@claude-plugin-marketplace
 /plugin install google-chat-poster@claude-plugin-marketplace
+/plugin install hermes-tweet@claude-plugin-marketplace
 ```
 
 3. **Restart Claude Code** to activate the plugins
@@ -135,6 +147,13 @@ Post "Build completed successfully" to Google Chat
 Send a message to Google Chat about the deployment status
 ```
 
+**Hermes Tweet:**
+```
+Install Hermes Tweet on this Hermes host and verify its tools
+Find the supported route for X post search before making a read request
+Explain why tweet_action is unavailable without enabling actions
+```
+
 ## How the Plugins Work
 
 Each plugin provides specialized skills that Claude Code automatically activates based on your requests:
@@ -144,6 +163,7 @@ Each plugin provides specialized skills that Claude Code automatically activates
 - **Application Advisor** activates when you mention Spring upgrades, Application Advisor, the advisor CLI, Broadcom registry tokens, or automating dependency bumps
 - **Mailgun** activates when you request to send emails and handles API communication with proper formatting
 - **Google Chat Poster** activates when you mention posting to Google Chat and manages the API integration
+- **Hermes Tweet** activates for Hermes Agent X/Twitter setup, route discovery, reads, monitoring, exports, and gated actions
 
 The plugins seamlessly integrate into your Claude Code workflow, requiring no special syntax or commands once installed.
 
@@ -263,4 +283,3 @@ MIT License - See plugin manifests for individual plugin licenses
 ---
 
 **Built for Claude Code** - Extend your AI development experience with Tanzu Platform integrations!
-

@@ -86,7 +86,19 @@
       "category": "cloud-foundry",
       "license": "MIT",
       "strict": true
+    },
+    {
+      "name": "hermes-tweet",
+      "source": "./plugins/hermes-tweet",
+      "description": "Guide Hermes Agent X/Twitter research and approval-gated actions through the Hermes Tweet plugin.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Xquik-dev"
+      },
+      "keywords": ["hermes-agent", "x-twitter", "xquik", "monitoring", "automation"],
+      "category": "integration",
+      "license": "MIT",
+      "strict": true
     }
   ]
 }
-

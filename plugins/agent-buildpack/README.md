@@ -15,24 +15,28 @@ Claude Code activates these automatically based on what you ask for — you don'
 invoke them by name:
 
 - **`tanzu-agent-deploy`** — pushes agents and MCP servers to Cloud Foundry,
-  writes/edits `AGENTS.md` and `manifest.yaml`, binds a chat model (GenAI
-  service, user-provided service, or `TANZU_AGENT_*` env vars), and wires
-  everything together through an MCP Gateway.
+  writes/edits `AGENTS.md` and `manifest.yaml`, binds a chat model (`ai-models`
+  service, user-provided service, or `TANZU_AGENT_*` env vars), puts Tanzu SSO in
+  front of the agent, adds Agent Memory Service and Credential Store, and wires
+  everything together through an MCP Gateway (including per-identity tool
+  filtering).
 - **`spring-ai-mcp-server`** — scaffolds a Java/Spring AI 2.0 MCP tool server
   (Streamable-HTTP, `@McpTool`-annotated tools, sample data) in its own
   subdirectory.
 - **`tanzu-agent-a2a`** — sets up native agent-to-agent (A2A) communication so
   one agent app can delegate to another as a peer (`a2a-peers.yaml`, the
   `list_a2a_peers` / `call_a2a_peer` tools, and AGENTS.md patterns for invoking
-  peers or handling inbound A2A requests). Requires Agent Buildpack v0.0.32+.
+  peers or answering them). Peers come from an `a2a`-tagged service binding,
+  a published agent offering, or `a2a-peers.yaml`.
 
 ## Prerequisites
 
 - **Claude Code CLI**, launched from the root of your demo project.
 - **`cf` CLI**, logged into a Tanzu Platform for Cloud Foundry foundation with:
-  - the Agent Buildpack available
+  - the GA Agent Buildpack (`agent_buildpack`, Tanzu AI Services 11.0)
   - the `mcp-gateway` service available in the target marketplace
-  - a GenAI service instance (or credentials for an OpenAI-compatible model)
+  - an `ai-models` plan (or credentials for an OpenAI-compatible model)
+  - optionally `p-identity` (Tanzu SSO), `agent-memory` and `credential-store`
 - **Java 21 + Maven**, to build and smoke-test MCP servers locally before
   deploying.
 
@@ -88,7 +92,7 @@ on every MCP server — that's the demo.
 .
 ├── AGENTS.md                  # agent system prompt
 ├── manifest.yaml              # CF manifest for the agent (agent_buildpack)
-├── a2a-peers.yaml             # (only if using A2A) peer alias → URL map
+├── a2a-peers.yaml             # (optional, A2A) peer alias → URL map; a binding also works
 ├── <feature>-mcp-server/      # one subdirectory per MCP server
 │   ├── pom.xml
 │   ├── manifest.yaml
@@ -106,7 +110,11 @@ on every MCP server — that's the demo.
 - Keep each MCP server focused on a handful of well-named tools — it keeps the
   tool-call trace easy to narrate during a live demo.
 - After any new MCP Gateway binding or model binding change, `cf restage` the
-  agent — bindings are only discovered at startup.
+  agent — bindings are only discovered at startup. Bind everything first, then
+  restage once: every restart drops users' per-server MCP OAuth tokens.
+- Use a single-model `ai-models` plan, or pin `TANZU_AGENT_DEFAULT_MODEL` — on
+  multi-model plans the agent otherwise picks the first advertised model, which is
+  often an embedding model.
 
 ## Installation
 
@@ -117,6 +125,8 @@ on every MCP server — that's the demo.
 
 ## Resources
 
-- [Agent Buildpack — Deploy an AI Agent](https://techdocs.broadcom.com/us/en/vmware-tanzu/platform/ai-services/10-4/ai/tutorials-deploy-an-ai-agent.html)
-- [MCP Gateway](https://techdocs.broadcom.com/us/en/vmware-tanzu/platform/ai-services/10-4/ai/tutorials-mcp-gateway.html)
+- [Agent Buildpack — Deploy an AI Agent](https://techdocs.broadcom.com/us/en/vmware-tanzu/platform/ai-services/11-0/ai/app-dev-guide-agent-buildpack-deploy-an-ai-agent.html)
+- [AI Agent Environment Variables](https://techdocs.broadcom.com/us/en/vmware-tanzu/platform/ai-services/11-0/ai/app-dev-guide-agent-buildpack-ai-agent-environment-variables.html)
+- [MCP Gateway](https://techdocs.broadcom.com/us/en/vmware-tanzu/platform/ai-services/11-0/ai/app-dev-guide-mcp-gateway-mcp-gateway-guide.html)
+- [A2A with the AI Agent](https://techdocs.broadcom.com/us/en/vmware-tanzu/platform/ai-services/11-0/ai/app-dev-guide-agent-buildpack-enable-a2a-for-the-ai-agent.html)
 - [Spring AI MCP overview](https://docs.spring.io/spring-ai/reference/api/mcp/mcp-overview.html)

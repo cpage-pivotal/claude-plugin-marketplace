@@ -1,7 +1,7 @@
 {
   "name": "agent-buildpack",
   "description": "Build and deploy AI agent demos on Tanzu Platform for Cloud Foundry using the Agent Buildpack and MCP Gateway. Bundles three skills: deploying agents and MCP Gateway wiring, scaffolding Spring AI MCP servers, and native agent-to-agent (A2A) communication.",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "author": {
     "name": "Corby Page"
   },

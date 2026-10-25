@@ -60,6 +60,9 @@ applications:
                                   # requirements.txt or package.json
     # stack: tanzucflinuxfs1      # pin if the foundation's default stack may change
     memory: 1G
+    metadata:
+      labels:
+        ai.tanzu.com/type: agent  # lists it on Tanzu Hub's Agents page (§8)
     health-check-type: http
     health-check-http-endpoint: /health
     health-check-invocation-timeout: 10
@@ -280,6 +283,11 @@ cf update-service my-gateway --wait -c '{
 
 To remove all off-platform servers: `cf update-service my-gateway --wait -c '{"mcp-servers": []}'`
 
+> **Send every top-level key you want to keep.** An update carrying only `mcp-servers`
+> resets `env` to `{}` — which silently turns `ENABLE_DASHBOARD` back off (observed on
+> 11.0). Include `"env": {...}` alongside `mcp-servers` (and vice versa). Changing either
+> restarts the gateway (~2 min); `mcp_server_bindings` (tool filtering) does not (~7s).
+
 > **Credentials for upstream servers:** the `mcp-servers` entry itself carries no
 > headers or auth. As of 11.0, bind a **Credential Store** (§6) and the gateway injects
 > a per-user or shared credential on the upstream call. Alternatively connect the agent
@@ -402,7 +410,9 @@ Connects.
 
 **Per-user MCP tokens are held in memory.** Any `cf restart`, `cf restage` or `cf push`
 of the agent drops them and every user must Connect again. Binding a Credential Store
-changes this model (§6).
+replaces this model (§6): the agent forwards the user's SSO token instead, so OIDC routes
+connect at sign-in with no Connect click or consent page, and a restart costs a sign-out
+and sign-in rather than N Connects.
 
 ## 5. Agent Memory Service (11.0)
 
@@ -441,18 +451,65 @@ cf bind-service my-agent my-cred-store
 cf restage my-agent
 ```
 
-- With a store bound **and** SSO bound, the agent forwards the signed-in user's SSO JWT
-  on gateway routes; the gateway asks Credential Store for that user's (or the store's
-  shared) credential and adds it to the upstream request. The agent never sees it.
-- Credentials are added **only in Tanzu Hub** (no cf CLI): *Connect* in the agent opens a
-  dialog pointing at Hub → *Add Credential* → back in the agent, click **Reconnect** (Hub
-  does not redirect back). Mid-conversation, an **Authorize** notification opens the same
-  dialog. The operator must set *Hub base URL* on the tile's Credential Store tab.
+**What binding it changes.** With a store bound **and** SSO bound, the agent stops running
+its own per-server OAuth handshake against gateway routes and instead forwards the
+signed-in user's SSO JWT on every gateway call (the runtime calls this "store-bound").
+The gateway uses that JWT to identify the user, then:
+
+- **On an `OIDC` route backed by the same SSO** the agent signed in with, the forwarded
+  JWT is already an acceptable credential: the gateway calls the upstream server as the
+  user and **the store is never consulted — it can stay empty**. Every such server
+  connects as soon as the user signs in: no Connect clicks, no "Application Access
+  Request" consent pages, identity intact upstream. (Verified 2026-10-24 on two Spring
+  resource servers behind `OIDC`/p-identity routes; not found in the docs — observed.)
+- **On a route whose upstream needs its own credential**, the gateway asks the store for
+  that user's credential — or the store's shared one — and adds it to the upstream
+  request. The agent never sees it. Two kinds:
+  - **Static** — *API Token* (custom header + value, e.g. `X-Api-Key`) or *Bearer Token*
+    (e.g. a GitHub PAT). Header values live in CredHub.
+  - **OAuth** — for gateway routes whose bind `auth` block makes the gateway an OAuth
+    client of the upstream IdP (`OAUTH`, `GITHUB_ENTERPRISE`, `USER_INFO`; §4). The user
+    authorizes **once**, in Hub (*Authenticate MCP server* → upstream sign-in → *Add*).
+    The gateway keeps the upstream token; the store keeps the gateway-issued token for
+    that connection (plus refresh token) and refreshes it when it is within 60s of
+    expiry. The connection outlives agent sessions and restarts; if refresh fails the
+    agent gets `authorization_required`, and the user clicks *Re-authenticate* in Hub.
+
+So one bind gives both "sign in once" for SSO-protected tools and brokered secrets for the
+rest. It is not a general secret store for the agent's own code: credentials only reach
+upstream MCP servers, through the gateway — a UPS pointing **directly** at an MCP server
+gets nothing. Off-platform (`mcp-servers`) entries carry no bind-time `auth`, so for them
+only static credentials are documented.
+
+**Adding a credential** (only needed for the second case) happens **only in Tanzu Hub**
+(no cf CLI): *Connect* in the agent opens a dialog pointing at Hub → *Spaces* → *<space>* →
+*Credentials* → *<store>* → *Add Credential* → pick the MCP server (Hub sets the credential
+type from it) → back in the agent, click **Reconnect** (Hub does not redirect back).
+Mid-conversation, an **Authorize** notification opens the same dialog. The operator must
+set *Hub base URL* on the tile's Credential Store tab, or the dialog has no link
+(`/api/configure` shows `hub_url: null`).
+
+- Lookup order: user credential by `sub` → store-scoped → user credential by `email`.
+  With Tanzu SSO the `sub` step rarely matches (different identity zone), so a user's own
+  credential is found **by email** — their Hub account email must match their agent
+  sign-in — and a **store-scoped credential wins over the user's own**. A shared
+  credential therefore makes every user act as one upstream account.
 - User-scoped credentials need a space role (Developer/Auditor/Supporter); store-scoped
-  (shared) credentials need Space Manager. With Tanzu SSO a **store-scoped credential
-  wins over the user's own** for the same server (identity-zone mismatch on `sub`).
+  (shared) credentials need Space Manager.
 - No user token, no credential — not even a shared one.
+- Bind SSO **before** the store: a store bound first can take up to ~1 hour to pick up
+  the issuer (unbind and rebind the store to apply it within a minute).
+- A deleted OAuth credential can keep working for up to 5 minutes (gateway token cache).
 - Pre-11.0 gateway instances need `cf upgrade-service` first (§4).
+
+**Restarts.** The browser session cookie survives a `cf restart`/`restage`/`push`; the
+agent's in-memory copy of the user's JWT does not. The UI still shows the user signed in,
+but every gateway server is back to `auth_required` and its button reads *Connect … add a
+credential in Tanzu Hub*. Clicking Connect → Reconnect then fails with **"Your sign-in has
+expired"** (agent log: `OAuth connect/retry rejected … no valid token available`) — the
+message is misleading; the session hasn't expired. **Sign out and sign in again**: every
+store-bound server reconnects on its own within seconds. Tell users this, rather than
+sending them to Hub.
 
 ## 7. Full deployment example
 
@@ -499,10 +556,48 @@ Then sign in and Connect each server in the browser — that is the real check.
 prompts), `branding/` assets, `ENABLE_DEBUG_UI` (default true), `ENABLE_ADMIN_UI`
 (settings dashboard), `ENABLE_MCP_SETTINGS`, `ENABLE_MODEL_PICKER`, `ENABLE_SIDEBAR`.
 
+**Branding.** Text comes from the env vars above (put them under `env:` in the manifest);
+assets from `branding/` beside `AGENTS.md` — `logo.svg`|`.png`, `favicon.svg`|`.png`|`.ico`,
+`style.css` — read **once at startup**, so an asset change needs `cf push`, an env change
+only a restart. Verified on 0.2.39:
+- **Hide a starter button with a single space**, e.g. `TANZU_AGENT_WELCOME_SUGGESTION_4: " "`.
+  An *unset* slot shows a generic default ("Give me a quick demo of what you can do"), so
+  setting three slots still shows four buttons. Buttons render only on an empty chat. With
+  shell or filesystem access on, the runtime replaces slot 4 with its own prompt.
+- `style.css` overrides CSS custom properties: light under `:root`, dark under `.dark`
+  (`--background`, `--foreground`, `--card[-foreground]`, `--secondary[-foreground]`,
+  `--primary[-foreground]`, `--accent[-foreground]`, `--border`, `--ring`). Redeclare
+  every one under `.dark` — an omitted one falls back to the stock dark theme.
+- **Dark mode puts a white chip behind a custom logo.** For a logo that is already a
+  filled shape, set `--logo-backdrop: transparent` under `.dark`.
+- **The assets are edge-cacheable.** `/api/branding/style.css` is served `public,
+  max-age=14400`; behind a CDN (Cloudflare on the apps domain: `cf-cache-status: HIT`) the
+  old stylesheet survives a push for up to 4h. Check a change with
+  `curl …/api/branding/style.css?v=1`, not by reloading the page.
+- `GET /api/configure` (signed in) reports `branding.has_logo` / `has_favicon` /
+  `has_stylesheet`, `agent_name`, `agent_description` and `welcome_suggestions`.
+
 **Logs and traces:** `TANZU_AGENT_LOG_JSON=true` (JSON lines with model, tool name,
 token counts, trace/span ids); `TANZU_AGENT_TRACING_ENABLED` + `TRACING_ENDPOINT`
 (OTLP/HTTP, OpenInference). `TRACING_INCLUDE_CONTENT` and `LOG_LLM_TRAFFIC` export
-prompts — only where the backend may store them.
+prompts — only where the backend may store them. Tracing needs an OTLP collector endpoint
+the app can reach (mTLS with the Diego instance identity by default); nothing provides one
+automatically, so with only the flag set no traces go anywhere.
+
+**Tanzu Hub's Agents page needs a label.** Hub (Workloads → Agents) lists only apps
+labelled `ai.tanzu.com/type=agent` — an `agent_buildpack` app without it is missing, and
+the page says "No agents yet" with the agent running. Put it in the manifest
+(`metadata.labels`, §1) so `cf push` applies it, or add it to a running app with
+`cf set-label app <agent> ai.tanzu.com/type=agent` (no restart; listed in ~30s, Hub
+11.0.0). Listed agents get a row with status, invocation success rate, 24h token usage and
+bound model, and a detail page with input/output tokens, tokens by model, end-to-end and
+LLM-only latency (p50/p95/p99), plus Logs, Health, Services and Traces tabs. The Traces tab
+stays empty unless the foundation actually receives app traces (above). Hub's own **Create
+Agent** wizard sets the same label, but it uploads only the instructions and a minimal
+manifest (512M, no env, health check or stack), creates a new model instance from a plan
+rather than using an existing one, lists only MCP servers published in the Hub Marketplace
+(not user-provided `mcp-server` services, whatever its empty-state text says), and binds no
+SSO or Credential Store. Fine for a first agent; deploy anything real with `cf push`.
 
 **Go-live checklist:** SSO bound and `/api/auth/status` checked · `ENABLE_DEBUG_UI=false`
 · no secrets in `AGENTS.md` or the manifest (`cf set-env` or bindings) · decide who may
@@ -523,9 +618,15 @@ settings dashboard off · trace content off.
 - **Gateway server connected but has no tools**: the gateway bind is missing its `auth`
   block, or a `tool_filtering` rule matched nothing for this caller.
 - **`oauth_pending` / "No MCP toolsets registered" after deploy**: correct — tools
-  appear per user after sign-in and Connect.
+  appear per user after sign-in and Connect (or at sign-in alone with a Credential Store
+  bound, §6).
 - **Every restart loses the MCP tools**: per-user tokens are in memory; reconnect, or
   bind a Credential Store (§6). Avoid restarts once users are connected.
+- **"Your sign-in has expired" on Reconnect, with a Credential Store bound**: the agent
+  restarted and lost the user's forwarded JWT. Sign out and sign in; don't add a Hub
+  credential for an OIDC route (§6).
+- **Agent missing from Tanzu Hub's Agents page**: the app lacks the
+  `ai.tanzu.com/type=agent` label (§8).
 - **SSO login loops or fails on callback**: the bind's `redirect_uris` doesn't match
   `<BASE_URL>/api/auth/callback`; set `TANZU_AGENT_BASE_URL` if users use another host.
 - **`invalid_scope` at login**: set `TANZU_AGENT_AUTH_OAUTH_SCOPES` to the scopes the

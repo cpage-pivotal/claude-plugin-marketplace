@@ -83,6 +83,10 @@ GCP Artifact Registry server with only a `<configuration>` block). Add empty
 Read the existing `~/.m2/settings.xml` before editing so you don't overwrite
 other server entries. Create the file if it doesn't exist.
 
+If the organization proxies Broadcom through Artifactory or Nexus, the Broadcom
+server entry can be replaced by a mirror; see
+[Using a repository manager instead of Broadcom](#using-a-repository-manager-instead-of-broadcom).
+
 ---
 
 ## Step 3 — Add the Enterprise Repository to `pom.xml`
@@ -129,6 +133,12 @@ version dynamically at install time.
 | macOS | Apple Silicon (arm64) | `macos-arm64` |
 | Windows | x86_64 | `windows` |
 
+**There is no Linux ARM64 build.** On ARM Linux CI runners, or in Docker on an
+Apple Silicon Mac (where containers default to `linux/arm64`), run the step
+as `linux/amd64` (e.g. `docker run --platform linux/amd64`, or select
+Linux / AMD64 in the CI platform's infrastructure settings) so the `linux`
+variant runs under emulation.
+
 Base download URL pattern:
 ```
 https://packages.broadcom.com/artifactory/spring-enterprise/com/vmware/tanzu/spring/
@@ -173,6 +183,32 @@ advisor build-config get
 # Compute what can be upgraded
 advisor upgrade-plan get
 ```
+
+### Exit codes
+
+`advisor upgrade-plan get` returns a non-zero code whenever part of the plan is
+held back, **even when it prints a usable plan with steps to apply**. In
+scripts or CI steps running under `set -e` (GitHub Actions' default `bash -e`
+included), that aborts the job before `upgrade-plan apply` runs.
+
+| Code | Meaning |
+|------|---------|
+| `0` | Success |
+| `10` | Missing mappings |
+| `30` | Recipe execution failure (`apply` only) |
+| `40` | Pull request creation failure (`apply` only) |
+| `50` | Blocked upgrades — some dependencies need an upgrade or mapping first; the console lists them |
+| `60` | Excluded artifacts |
+| `70` | Unknown error |
+
+When several apply, 60 takes precedence over 50, and 50 over 10. To print the
+plan in CI without failing on a partially blocked plan:
+
+```bash
+advisor upgrade-plan get || [ $? -eq 50 ]
+```
+
+Reference: the [CLI reference](https://techdocs.broadcom.com/us/en/vmware-tanzu/spring/application-advisor/1-7/app-advisor/cli-reference.html).
 
 ### Interpreting the upgrade plan output
 
@@ -269,10 +305,17 @@ touches the version of one release line per dependency, so branch names don't
 balloon the way concatenated upgrade branch names do:
 
 ```bash
-advisor patch apply --push --from-yml
+advisor patch apply --push
 ```
 
-`--from-yml` reads settings from an `.advisor.yml` file in the repo root:
+> **Do not pass `--from-yml` to `patch apply`.** Broadcom's patching page shows
+> `advisor patch apply --push --from-yml`, but CLI 1.6.5 and 1.7.1 both reject
+> it with `Unknown option: '--from-yml'`. The CLI reference documents
+> `--from-yml` only on `advisor upgrade-plan apply`, where it applies the plan
+> only if `.advisor.yml` contains `enabled: true`.
+
+`patch apply` reads ignore rules from an `.advisor.yml` file in the repo root
+automatically, with no flag:
 
 ```yaml
 enabled: true
@@ -289,7 +332,8 @@ ignore:
 
 `.advisor.yml` replaces the older `.spring-app-advisor.yml` filename — if both
 are present, `.advisor.yml` takes precedence, though the old filename is still
-recognized.
+recognized. `enabled: true` is what `upgrade-plan apply --from-yml` checks;
+`patch apply` uses only the `ignore` list.
 
 **Required for `--push`:** `GIT_TOKEN_FOR_PRS` with `repo` write access, same
 as the upgrade workflow. Against a self-hosted Git instance, also pass
@@ -314,9 +358,9 @@ equivalent. The upgrade workflow runs on every push to `main`, downloads the
 Linux advisor CLI, applies the upgrade with `advisor upgrade-plan apply`, then
 opens a PR using a short datestamped branch name via the `gh` CLI. The patch
 workflow instead runs on a schedule (patches are best applied regularly, not
-on every push) and calls `advisor patch apply --push --from-yml`, which needs
-an `.advisor.yml` with `enabled: true` committed to the repo. The two
-workflows can coexist in the same repository.
+on every push) and calls `advisor patch apply --push`, honouring any
+`.advisor.yml` ignore rules committed to the repo. The two workflows can
+coexist in the same repository.
 
 **GitHub secrets to configure** (`Settings → Secrets → Actions`):
 
@@ -332,6 +376,68 @@ workflows can coexist in the same repository.
 
 Write the workflow(s) to `.github/workflows/application-advisor.yml` and
 `.github/workflows/application-advisor-patch.yml`.
+
+If CI resolves through a repository manager (next section), replace the two
+Broadcom secrets with the repository manager's credentials.
+
+---
+
+## Using a repository manager instead of Broadcom
+
+Organizations often proxy `https://packages.broadcom.com/artifactory/spring-enterprise`
+through Artifactory or Nexus (a Maven *remote* repository holding the Broadcom
+email and registry token). CI then needs **no Broadcom credentials at all**.
+The registry token stays in the repository manager. This has been verified
+with CLI 1.7.1 and an Artifactory OSS remote: `build-config get`,
+`upgrade-plan get`, `patch apply` (including enterprise-only versions such as
+Spring Boot `3.4.17.1`), and `upgrade-plan apply` all ran with a
+`settings.xml` that contained only the mirror.
+
+**Maven / advisor settings.** The advisor follows Maven mirrors. Keep the
+`spring-enterprise-subscription` repository in `pom.xml` (Step 3) and mirror
+that ID:
+
+```xml
+<settings>
+  <servers>
+    <server>
+      <id>spring-enterprise-remote</id>
+      <username>REPO_MANAGER_USER</username>
+      <password>REPO_MANAGER_PASSWORD</password>
+    </server>
+  </servers>
+  <mirrors>
+    <mirror>
+      <id>spring-enterprise-remote</id>
+      <mirrorOf>spring-enterprise-subscription</mirrorOf>
+      <url>https://repo.example.com/artifactory/spring-enterprise-remote</url>
+    </mirror>
+  </mirrors>
+</settings>
+```
+
+**CLI download.** The CLI tarball resolves through the same remote, at the
+same path as on Broadcom:
+
+```bash
+curl -fsSL -u "$REPO_USER:$REPO_PASSWORD" -o /tmp/advisor-cli.tar \
+  "$REMOTE_URL/com/vmware/tanzu/spring/application-advisor-cli-linux/${ADVISOR_VERSION}/application-advisor-cli-linux-${ADVISOR_VERSION}.tar"
+```
+
+**Pin `ADVISOR_VERSION` when downloading through a mirror.** The
+`api/search/latestVersion` call in Step 4 works only against Broadcom's own
+Artifactory, with a Broadcom token:
+- Artifactory OSS rejects that API as a Pro-only feature.
+- Broadcom publishes no `maven-metadata.xml` for the CLI artifacts.
+- A remote repository's folder listing shows only versions it has already
+  cached.
+
+Check for new releases with the Step 4 API call from a machine that has the
+token, then bump the pin.
+
+Since 1.6 the commercial recipes ship inside the CLI, so the repository
+manager is needed for enterprise artifacts (patch/hotfix versions such as
+`3.4.17.1`) and the CLI download, not for the default recipes.
 
 ---
 
@@ -379,4 +485,8 @@ Bump the BOM version manually in `pom.xml`:
 | Upgrade PR doesn't trigger CI checks | `GIT_TOKEN_FOR_PRS` is `GITHUB_TOKEN` | Switch to a personal access token with `repo` scope |
 | PR creation fails with `422 refs longer than 255 bytes are not allowed` | `advisor upgrade-plan apply --push` auto-generates a branch name listing every upgraded library; on steps with many libraries the name exceeds GitHub's limit | Don't use `--push`; instead run `advisor upgrade-plan apply` then open the PR with `gh pr create` using a short datestamped branch name (see `references/github-workflow.yml`) |
 | `advisor patch apply` runs for several minutes with no output | Expected — it looks up the latest patch version for every SBOM dependency against Maven Central | Run it in CI on a schedule rather than interactively; not a hang |
-| `advisor patch apply --from-yml` doesn't pick up ignore rules | Settings are in `.spring-app-advisor.yml` but `.advisor.yml` also exists | `.advisor.yml` takes precedence when both are present — consolidate settings there |
+| `Unknown option: '--from-yml'` from `advisor patch apply` | `--from-yml` is an `upgrade-plan apply` option; Broadcom's patching page shows it on `patch apply` by mistake | Run `advisor patch apply` (or `--push`) without it — `.advisor.yml` ignore rules are applied automatically |
+| `advisor patch apply` doesn't pick up ignore rules | Settings are in `.spring-app-advisor.yml` but `.advisor.yml` also exists | `.advisor.yml` takes precedence when both are present — consolidate settings there |
+| CI job fails right after printing an upgrade plan | `advisor upgrade-plan get` exits `50` (blocked upgrades) even when the plan has applicable steps, and the step runs under `set -e` | Use `advisor upgrade-plan get \|\| [ $? -eq 50 ]`, or skip `get` and run `upgrade-plan apply` directly (see Exit codes in Step 5) |
+| CLI install fails on Linux ARM64 / Apple Silicon Docker | Broadcom publishes no `linux-arm64` CLI variant | Run the job or container as `linux/amd64` |
+| CLI version lookup fails through Artifactory/Nexus | `api/search/latestVersion` is Pro-only and Broadcom publishes no `maven-metadata.xml` for the CLI | Pin `ADVISOR_VERSION`; see [Using a repository manager](#using-a-repository-manager-instead-of-broadcom) |

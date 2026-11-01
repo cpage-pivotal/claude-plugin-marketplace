@@ -26,12 +26,15 @@ on every push to `main`.
 3. Adding the enterprise Maven repository to `pom.xml`
 4. Installing the `advisor` CLI for your OS/architecture
 5. Running `advisor build-config get` and `advisor upgrade-plan get`
-6. Interpreting upgrade plan output and handling blocked dependencies
-7. Applying upgrades and opening PRs with `advisor upgrade-plan apply --push`
+6. Interpreting upgrade plan output, exit codes, and blocked dependencies
+7. Applying upgrades with `advisor upgrade-plan apply` and opening PRs with
+   short branch names (`--push` can exceed GitHub's ref-length limit)
 8. Applying security/bug-fix patches with `advisor patch apply` and `.advisor.yml`
 9. Creating `.github/workflows/application-advisor.yml` and
    `.github/workflows/application-advisor-patch.yml` workflows for CI
-10. Running Broadcom commercial OpenRewrite recipes for Spring Boot 4.x directly
+10. Routing Maven and the CLI download through Artifactory or Nexus so CI needs
+    no Broadcom credentials
+11. Running Broadcom commercial OpenRewrite recipes for Spring Boot 4.x directly
 
 ## Prerequisites
 

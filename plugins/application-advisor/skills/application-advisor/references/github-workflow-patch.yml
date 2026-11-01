@@ -55,8 +55,9 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
 
-      # Requires an .advisor.yml with `enabled: true` committed to the repo root.
+      # Ignore rules in an .advisor.yml at the repo root are honoured automatically.
+      # Do not add --from-yml: patch apply rejects it (it is an upgrade-plan apply option).
       - name: Apply patches and open PR
         env:
           GIT_TOKEN_FOR_PRS: ${{ secrets.GIT_TOKEN_FOR_PRS }}
-        run: advisor patch apply --push --from-yml
+        run: advisor patch apply --push

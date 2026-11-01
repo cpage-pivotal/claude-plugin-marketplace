@@ -186,10 +186,12 @@ advisor upgrade-plan get
 
 ### Exit codes
 
-`advisor upgrade-plan get` returns a non-zero code whenever part of the plan is
-held back, **even when it prints a usable plan with steps to apply**. In
-scripts or CI steps running under `set -e` (GitHub Actions' default `bash -e`
-included), that aborts the job before `upgrade-plan apply` runs.
+`advisor upgrade-plan get` **and** `advisor upgrade-plan apply` return `50`
+whenever part of the plan is held back, even when `get` prints a usable plan
+and `apply` reports "Successfully applied upgrade" (observed with CLI 1.7.1 on
+Spring PetClinic, where Jackson 3 blocked part of the Boot 4 path). In scripts
+or CI steps running under `set -e` (GitHub Actions' default `bash -e`
+included), that fails the job even though the upgrade step was applied.
 
 | Code | Meaning |
 |------|---------|
@@ -201,11 +203,13 @@ included), that aborts the job before `upgrade-plan apply` runs.
 | `60` | Excluded artifacts |
 | `70` | Unknown error |
 
-When several apply, 60 takes precedence over 50, and 50 over 10. To print the
-plan in CI without failing on a partially blocked plan:
+When several apply, 60 takes precedence over 50, and 50 over 10. In CI, accept
+50 from both commands, then decide whether to open a PR from `git status`
+rather than from the exit code:
 
 ```bash
 advisor upgrade-plan get || [ $? -eq 50 ]
+advisor upgrade-plan apply || [ $? -eq 50 ]
 ```
 
 Reference: the [CLI reference](https://techdocs.broadcom.com/us/en/vmware-tanzu/spring/application-advisor/1-7/app-advisor/cli-reference.html).
@@ -278,10 +282,21 @@ when you want to reduce PR noise.
 
 Since 1.6.5, the advisor can also **patch** dependencies instead of upgrading
 them. A patch stays within the dependency's current minor version and picks up
-CVE fixes and bug fixes (e.g. `2.7.3` → `2.7.34.1`), whereas `upgrade-plan`
+CVE fixes and bug fixes (e.g. `2.7.3` → `2.7.35`), whereas `upgrade-plan`
 moves to a new minor or major version. Use patches when the user wants CVEs
 closed without the risk of a version bump; use `upgrade-plan` (Steps 5–6) when
 they want to move onto a newer release line.
+
+**Commercial version numbering.** Once a Spring Boot line leaves open-source
+support, later releases are published only in Broadcom's `spring-enterprise`
+repository, with ordinary three-part versions. For example, the last
+open-source 3.4 release on Maven Central is 3.4.13, and 3.4.14 through 3.4.18
+are Broadcom-only (2.7 likewise ends at 2.7.18 on Central). Four-part versions
+such as `3.4.17.1` or `2.7.34.1` are additional point releases between regular
+commercial releases, not the general commercial format. `patch apply` picks
+the highest version by Maven ordering, so it moves to `3.4.18` rather than
+`3.4.17.1`. A three-part target above the last open-source release is already
+commercial.
 
 ```bash
 advisor patch apply
@@ -390,7 +405,7 @@ email and registry token). CI then needs **no Broadcom credentials at all**.
 The registry token stays in the repository manager. This has been verified
 with CLI 1.7.1 and an Artifactory OSS remote: `build-config get`,
 `upgrade-plan get`, `patch apply` (including enterprise-only versions such as
-Spring Boot `3.4.17.1`), and `upgrade-plan apply` all ran with a
+Spring Boot `3.4.18`), and `upgrade-plan apply` all ran with a
 `settings.xml` that contained only the mirror.
 
 **Maven / advisor settings.** The advisor follows Maven mirrors. Keep the
@@ -437,7 +452,7 @@ token, then bump the pin.
 
 Since 1.6 the commercial recipes ship inside the CLI, so the repository
 manager is needed for enterprise artifacts (patch/hotfix versions such as
-`3.4.17.1`) and the CLI download, not for the default recipes.
+`3.4.18`) and the CLI download, not for the default recipes.
 
 ---
 
@@ -481,12 +496,13 @@ Bump the BOM version manually in `pom.xml`:
 | HTTP 401 downloading CLI or resolving Maven artifacts | Expired or invalid registry token | Regenerate at https://support.broadcom.com |
 | `advisor: command not found` | `~/bin` not on `$PATH` | Add `export PATH="$HOME/bin:$PATH"` to `~/.zshrc` or `~/.bashrc` |
 | "No upgrade plans available" with a list of blockers | Third-party dependencies lack upgrade mappings | Use Option A or Option B from Step 5 above |
+| PR includes `.advisor/` or CI metadata files (e.g. Harness's `plugin-build-tool.json`) | `git add -A` stages untracked working files the advisor or CI platform wrote to the repo root | Before staging, append them to the clone's `.git/info/exclude`. Avoid `git add -A -- . ':(exclude).advisor'`: it fails when the repo already ignores those paths |
 | `Could not apply the recipe(s)` with a `.advisor/errors/*.log` | An existing `rewrite-maven-plugin` in `pom.xml` has `<activeRecipes>` configured — Maven merges those recipes with the advisor's own, causing a conflict | Remove the `rewrite-maven-plugin` block from `pom.xml`; the advisor manages its own rewrite invocations |
 | Upgrade PR doesn't trigger CI checks | `GIT_TOKEN_FOR_PRS` is `GITHUB_TOKEN` | Switch to a personal access token with `repo` scope |
 | PR creation fails with `422 refs longer than 255 bytes are not allowed` | `advisor upgrade-plan apply --push` auto-generates a branch name listing every upgraded library; on steps with many libraries the name exceeds GitHub's limit | Don't use `--push`; instead run `advisor upgrade-plan apply` then open the PR with `gh pr create` using a short datestamped branch name (see `references/github-workflow.yml`) |
 | `advisor patch apply` runs for several minutes with no output | Expected — it looks up the latest patch version for every SBOM dependency against Maven Central | Run it in CI on a schedule rather than interactively; not a hang |
 | `Unknown option: '--from-yml'` from `advisor patch apply` | `--from-yml` is an `upgrade-plan apply` option; Broadcom's patching page shows it on `patch apply` by mistake | Run `advisor patch apply` (or `--push`) without it — `.advisor.yml` ignore rules are applied automatically |
 | `advisor patch apply` doesn't pick up ignore rules | Settings are in `.spring-app-advisor.yml` but `.advisor.yml` also exists | `.advisor.yml` takes precedence when both are present — consolidate settings there |
-| CI job fails right after printing an upgrade plan | `advisor upgrade-plan get` exits `50` (blocked upgrades) even when the plan has applicable steps, and the step runs under `set -e` | Use `advisor upgrade-plan get \|\| [ $? -eq 50 ]`, or skip `get` and run `upgrade-plan apply` directly (see Exit codes in Step 5) |
+| CI job fails after printing an upgrade plan, or after "Successfully applied upgrade" | `advisor upgrade-plan get` and `advisor upgrade-plan apply` both exit `50` (blocked upgrades) even when a step is applied, and the step runs under `set -e` | Append `\|\| [ $? -eq 50 ]` to both commands and check `git status` for changes (see Exit codes in Step 5) |
 | CLI install fails on Linux ARM64 / Apple Silicon Docker | Broadcom publishes no `linux-arm64` CLI variant | Run the job or container as `linux/amd64` |
 | CLI version lookup fails through Artifactory/Nexus | `api/search/latestVersion` is Pro-only and Broadcom publishes no `maven-metadata.xml` for the CLI | Pin `ADVISOR_VERSION`; see [Using a repository manager](#using-a-repository-manager-instead-of-broadcom) |

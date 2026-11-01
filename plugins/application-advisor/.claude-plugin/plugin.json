@@ -1,7 +1,7 @@
 {
   "name": "application-advisor",
   "description": "Automate Spring dependency upgrades and security patches using Broadcom Application Advisor. Use when the user asks about Spring upgrades, Application Advisor, the advisor CLI, Broadcom registry tokens, dependency patching, or automated dependency management for Spring projects.",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "author": {
     "name": "Corby Page"
   },

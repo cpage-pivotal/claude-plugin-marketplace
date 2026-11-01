@@ -57,14 +57,18 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
 
+      # Exit 50 = some upgrades are blocked. apply returns it even after applying a step,
+      # so accept it and let the PR step decide from git status.
       - name: Apply upgrade plan
-        run: advisor upgrade-plan apply
+        run: advisor upgrade-plan apply || [ $? -eq 50 ]
 
       - name: Open PR if changes were made
         env:
           GH_TOKEN: ${{ secrets.GIT_TOKEN_FOR_PRS }}
         run: |
-          if git diff --quiet && git diff --staged --quiet; then
+          # Keep the advisor's working files out of the commit, whether or not the repo ignores them.
+          printf '.advisor/\ntarget/\n' >> .git/info/exclude
+          if [ -z "$(git status --porcelain)" ]; then
             echo "No changes – project is already up to date."
             exit 0
           fi
